@@ -1,0 +1,244 @@
+<html>
+<head>
+<title>performance.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6897bb;}
+.s3 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+performance.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">json</span>
+<span class="s0">import </span><span class="s1">math</span>
+<span class="s0">import </span><span class="s1">time</span>
+
+<span class="s0">from </span><span class="s1">utils </span><span class="s0">import </span><span class="s1">update_json</span><span class="s0">, </span><span class="s1">get_key_from_attribute</span>
+
+
+<span class="s0">def </span><span class="s1">max_exp(player: dict):</span>
+    <span class="s0">return </span><span class="s1">int(</span><span class="s2">2 </span><span class="s1">* (player[</span><span class="s3">&quot;performance_level&quot;</span><span class="s1">] + </span><span class="s2">1</span><span class="s1">))</span>
+
+
+<span class="s0">def </span><span class="s1">is_level_up(player: dict):</span>
+    <span class="s0">if </span><span class="s1">player[</span><span class="s3">&quot;performance_exp&quot;</span><span class="s1">] &gt;= max_exp(player):</span>
+        <span class="s0">return True</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">return False</span>
+
+
+<span class="s0">def </span><span class="s1">perform(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">players = json.load(open(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">players.keys():</span>
+        <span class="s1">player = players[chat_id]</span>
+
+        <span class="s1">performance_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s3">'s performance summary&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                           <span class="s3">f&quot;&lt;code&gt;--------------------------------&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+
+        <span class="s0">if </span><span class="s1">player[</span><span class="s3">&quot;performance_date&quot;</span><span class="s1">] &lt;= int(time.time()):</span>
+            <span class="s0">if </span><span class="s1">player[</span><span class="s3">&quot;is_performing&quot;</span><span class="s1">] </span><span class="s0">is False</span><span class="s1">:</span>
+                <span class="s1">player[</span><span class="s3">&quot;performance_date&quot;</span><span class="s1">] = int(time.time()) + </span><span class="s2">3600</span>
+                <span class="s1">player[</span><span class="s3">&quot;is_performing&quot;</span><span class="s1">] = </span><span class="s0">True</span>
+
+                <span class="s1">performance_text += </span><span class="s3">f&quot;&lt;code&gt;Performance status : started&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                                    <span class="s3">f&quot;&lt;code&gt;Duration left      : 60:00 mins&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">player[</span><span class="s3">&quot;performance_date&quot;</span><span class="s1">] = int(time.time()) + </span><span class="s2">3600</span>
+                <span class="s1">player[</span><span class="s3">&quot;is_performing&quot;</span><span class="s1">] = </span><span class="s0">True</span>
+
+                <span class="s1">player[</span><span class="s3">&quot;performance_exp&quot;</span><span class="s1">] += </span><span class="s2">1</span>
+                <span class="s1">total_quavers = </span><span class="s2">10 </span><span class="s1">+ player[</span><span class="s3">&quot;performance_increment&quot;</span><span class="s1">]</span>
+                <span class="s1">player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">] += total_quavers</span>
+
+                <span class="s1">performance_text += </span><span class="s3">f&quot;&lt;code&gt;Performance status : repeat&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                                    <span class="s3">f&quot;&lt;code&gt;Quavers gained     : </span><span class="s0">{</span><span class="s1">total_quavers</span><span class="s0">} </span><span class="s3">quavers&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">performance_duration_left = player[</span><span class="s3">&quot;performance_date&quot;</span><span class="s1">] - int(time.time())</span>
+
+            <span class="s1">minutes = math.floor(performance_duration_left / </span><span class="s2">60</span><span class="s1">)</span>
+            <span class="s1">seconds = performance_duration_left % </span><span class="s2">60</span>
+
+            <span class="s1">performance_text += </span><span class="s3">f&quot;&lt;code&gt;Performance status : ongoing&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;Duration left      : </span><span class="s0">{</span><span class="s1">minutes</span><span class="s0">}</span><span class="s3">:</span><span class="s0">{</span><span class="s1">seconds</span><span class="s0">:</span><span class="s3">02</span><span class="s0">} </span><span class="s3">mins&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+
+        <span class="s1">performance_exp = player[</span><span class="s3">&quot;performance_exp&quot;</span><span class="s1">]</span>
+        <span class="s1">performance_level = player[</span><span class="s3">&quot;performance_level&quot;</span><span class="s1">]</span>
+        <span class="s1">quavers = player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">]</span>
+
+        <span class="s1">performance_text += </span><span class="s3">f&quot;&lt;code&gt;--------------------------------&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Performance level  : </span><span class="s0">{</span><span class="s1">performance_level</span><span class="s0">} </span><span class="s3">&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;(</span><span class="s0">{</span><span class="s1">performance_exp</span><span class="s0">}</span><span class="s3">/</span><span class="s0">{</span><span class="s1">max_exp(player)</span><span class="s0">}</span><span class="s3">)</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Total Quavers      : </span><span class="s0">{</span><span class="s1">quavers</span><span class="s0">} </span><span class="s3">quavers&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=performance_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+        <span class="s0">if </span><span class="s1">is_level_up(player):</span>
+            <span class="s1">player[</span><span class="s3">&quot;performance_exp&quot;</span><span class="s1">] -= max_exp(player)</span>
+            <span class="s1">player[</span><span class="s3">&quot;performance_level&quot;</span><span class="s1">] += </span><span class="s2">1</span>
+            <span class="s1">player[</span><span class="s3">&quot;performance_increment&quot;</span><span class="s1">] += </span><span class="s2">2</span>
+
+            <span class="s1">performance_level = player[</span><span class="s3">&quot;performance_level&quot;</span><span class="s1">]</span>
+            <span class="s1">performance_increment = player[</span><span class="s3">&quot;performance_increment&quot;</span><span class="s1">]</span>
+
+            <span class="s1">level_up_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s3">'s performance summary</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Performance level increased to level </span><span class="s0">{</span><span class="s1">performance_level</span><span class="s0">}\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Performance now grants </span><span class="s0">{</span><span class="s2">10 </span><span class="s1">+ performance_increment</span><span class="s0">} </span><span class="s3">quavers&lt;/code&gt;&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=level_up_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+        <span class="s1">players[chat_id] = player</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s3">is not found in community database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+    <span class="s1">update_json(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s1">players)</span>
+
+
+<span class="s0">def </span><span class="s1">collect(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">players = json.load(open(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">players.keys():</span>
+        <span class="s1">player = players[chat_id]</span>
+
+        <span class="s1">performance_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s3">'s performance summary&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                           <span class="s3">f&quot;&lt;code&gt;--------------------------------&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+        <span class="s0">if </span><span class="s1">player[</span><span class="s3">&quot;performance_date&quot;</span><span class="s1">] &lt;= int(time.time()):</span>
+            <span class="s0">if </span><span class="s1">player[</span><span class="s3">&quot;is_performing&quot;</span><span class="s1">] </span><span class="s0">is False</span><span class="s1">:</span>
+                <span class="s1">performance_text = </span><span class="s3">f&quot;Performance status : stalled</span><span class="s0">\n</span><span class="s3">&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=performance_text)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">players[</span><span class="s3">&quot;performance_date&quot;</span><span class="s1">] = int(time.time()) + </span><span class="s2">3600</span>
+                <span class="s1">player[</span><span class="s3">&quot;is_performing&quot;</span><span class="s1">] = </span><span class="s0">False</span>
+
+                <span class="s1">player[</span><span class="s3">&quot;performance_exp&quot;</span><span class="s1">] += </span><span class="s2">1</span>
+                <span class="s1">total_quavers = </span><span class="s2">10 </span><span class="s1">+ player[</span><span class="s3">&quot;performance_increment&quot;</span><span class="s1">]</span>
+                <span class="s1">player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">] += total_quavers</span>
+
+                <span class="s1">performance_text += </span><span class="s3">f&quot;&lt;code&gt;Performance status : successful&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                                    <span class="s3">f&quot;&lt;code&gt;Quavers gained     : </span><span class="s0">{</span><span class="s1">total_quavers</span><span class="s0">} </span><span class="s3">quavers&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">performance_duration_left = player[</span><span class="s3">&quot;performance_date&quot;</span><span class="s1">] - int(time.time())</span>
+
+            <span class="s1">minutes = math.floor(performance_duration_left / </span><span class="s2">60</span><span class="s1">)</span>
+            <span class="s1">seconds = performance_duration_left % </span><span class="s2">60</span>
+
+            <span class="s1">performance_text += </span><span class="s3">f&quot;&lt;code&gt;Performance status : ongoing&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;Duration left      : </span><span class="s0">{</span><span class="s1">minutes</span><span class="s0">}</span><span class="s3">:</span><span class="s0">{</span><span class="s1">seconds</span><span class="s0">:</span><span class="s3">02</span><span class="s0">} </span><span class="s3">mins&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+
+        <span class="s1">performance_exp = player[</span><span class="s3">&quot;performance_exp&quot;</span><span class="s1">]</span>
+        <span class="s1">performance_level = player[</span><span class="s3">&quot;performance_level&quot;</span><span class="s1">]</span>
+        <span class="s1">quavers = player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">]</span>
+
+        <span class="s1">performance_text += </span><span class="s3">f&quot;&lt;code&gt;--------------------------------&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Performance level  : </span><span class="s0">{</span><span class="s1">performance_level</span><span class="s0">} </span><span class="s3">&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;(</span><span class="s0">{</span><span class="s1">performance_exp</span><span class="s0">}</span><span class="s3">/</span><span class="s0">{</span><span class="s1">max_exp(player)</span><span class="s0">}</span><span class="s3">)</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Total Quavers      : </span><span class="s0">{</span><span class="s1">quavers</span><span class="s0">} </span><span class="s3">quavers&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=performance_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+        <span class="s0">if </span><span class="s1">is_level_up(player):</span>
+            <span class="s1">player[</span><span class="s3">&quot;performance_exp&quot;</span><span class="s1">] -= max_exp(player)</span>
+            <span class="s1">player[</span><span class="s3">&quot;performance_level&quot;</span><span class="s1">] += </span><span class="s2">1</span>
+            <span class="s1">player[</span><span class="s3">&quot;performance_increment&quot;</span><span class="s1">] += </span><span class="s2">2</span>
+
+            <span class="s1">performance_level = player[</span><span class="s3">&quot;performance_level&quot;</span><span class="s1">]</span>
+            <span class="s1">performance_increment = player[</span><span class="s3">&quot;performance_increment&quot;</span><span class="s1">]</span>
+
+            <span class="s1">level_up_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s3">'s performance summary</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Performance level increased to level </span><span class="s0">{</span><span class="s1">performance_level</span><span class="s0">}</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Performance now grants </span><span class="s0">{</span><span class="s2">10 </span><span class="s1">+ performance_increment</span><span class="s0">} </span><span class="s3">quavers&lt;/code&gt;&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=level_up_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s1">players[chat_id] = player</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s3">not found in community database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+    <span class="s1">update_json(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s1">players)</span>
+
+
+<span class="s0">def </span><span class="s1">donate(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">players = json.load(open(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+    <span class="s1">text = update.message.text.split(</span><span class="s3">&quot; &quot;</span><span class="s1">)</span>
+
+    <span class="s1">other_player_username</span><span class="s0">, </span><span class="s1">donation_amount</span><span class="s0">, </span><span class="s1">other_player_chat_id = </span><span class="s3">&quot;x&quot;</span><span class="s0">, </span><span class="s3">&quot;x&quot;</span><span class="s0">, </span><span class="s3">&quot;x&quot;</span>
+
+    <span class="s0">try</span><span class="s1">:</span>
+        <span class="s1">other_player_username = text[</span><span class="s2">1</span><span class="s1">][</span><span class="s2">1</span><span class="s1">:]</span>
+        <span class="s1">donation_amount = int(text[</span><span class="s2">2</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">text[</span><span class="s2">2</span><span class="s1">].isnumeric() </span><span class="s0">else </span><span class="s3">&quot;x&quot;</span>
+        <span class="s1">other_player_chat_id = get_key_from_attribute(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s3">&quot;username&quot;</span><span class="s0">, </span><span class="s1">other_player_username)</span>
+    <span class="s0">except </span><span class="s1">IndexError:</span>
+        <span class="s0">pass</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">players.keys() </span><span class="s0">and </span><span class="s1">other_player_chat_id </span><span class="s0">in </span><span class="s1">players.keys():</span>
+        <span class="s0">if </span><span class="s1">len(text) == </span><span class="s2">3 </span><span class="s0">and </span><span class="s3">&quot;@&quot; </span><span class="s0">in </span><span class="s1">text[</span><span class="s2">1</span><span class="s1">] </span><span class="s0">and </span><span class="s1">isinstance(donation_amount</span><span class="s0">, </span><span class="s1">int):</span>
+            <span class="s1">player = players[chat_id]</span>
+            <span class="s1">other_player = players[other_player_chat_id]</span>
+
+            <span class="s0">if </span><span class="s1">donation_amount &lt;= player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">]:</span>
+                <span class="s1">player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">] -= donation_amount</span>
+                <span class="s1">other_player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">] += donation_amount</span>
+
+                <span class="s1">quavers = player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">]</span>
+
+                <span class="s1">donation_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s3">'s donation summary</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;-------------------------------</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;Receiver          : </span><span class="s0">{</span><span class="s1">other_player_username</span><span class="s0">}\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;Donation amount   : </span><span class="s0">{</span><span class="s1">donation_amount</span><span class="s0">}\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;-------------------------------</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;Available quavers : </span><span class="s0">{</span><span class="s1">quavers</span><span class="s0">} </span><span class="s3">quavers&lt;/code&gt;&quot; </span><span class="s1">\</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=donation_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">insufficient_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s3">has insufficient amount to donate&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=insufficient_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+            <span class="s1">players[chat_id] = player</span>
+            <span class="s1">players[other_player_chat_id] = other_player</span>
+
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">format_error_text = </span><span class="s3">f&quot;&lt;code&gt;Error : Wrong donation format</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;Format: /donate @member amount&lt;/code&gt;&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=format_error_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">not in </span><span class="s1">players.keys():</span>
+            <span class="s1">unregistered_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s3">not found in community database&lt;/code&gt;&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s0">if </span><span class="s1">other_player_chat_id </span><span class="s0">not in </span><span class="s1">players.keys():</span>
+            <span class="s1">unregistered_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">other_player_username</span><span class="s0">} </span><span class="s3">is not found in community database&lt;/code&gt;&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+    <span class="s1">update_json(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s1">players)</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,641 @@
+<html>
+<head>
+<title>CHANGELOG.md</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CHANGELOG.md</font>
+</center></td></tr></table>
+<pre><span class="s0">## </span><span class="s2">Version 6.1.1 </span><span class="s1">(</span><span class="s2">February 9, 2022</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Updated the heuristic to fix the letter ß in UTF-8/MacRoman mojibake,</span>
+  <span class="s2">which had regressed since version 5.6.</span>
+
+<span class="s0">- </span><span class="s2">Packaging fixes to pyproject.toml.</span>
+
+<span class="s0">## </span><span class="s2">Version 6.1 </span><span class="s1">(</span><span class="s2">February 9, 2022</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Updated the heuristic to fix the letter Ñ with more confidence.</span>
+
+<span class="s0">- </span><span class="s2">Fixed type annotations and added py.typed.</span>
+
+<span class="s0">- </span><span class="s2">ftfy is packaged using Poetry now, and wheels are created and uploaded to</span>
+  <span class="s2">PyPI.</span>
+
+<span class="s0">## </span><span class="s2">Version 6.0.3 </span><span class="s1">(</span><span class="s2">May 14, 2021</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Allow the keyword argument </span><span class="s3">`</span><span class="s2">fix_entities</span><span class="s3">` </span><span class="s2">as a deprecated alias for</span>
+  <span class="s3">`</span><span class="s2">unescape_html</span><span class="s3">`</span><span class="s2">, raising a warning.</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">ftfy.formatting</span><span class="s3">` </span><span class="s2">functions now disregard ANSI terminal escapes when</span>
+  <span class="s2">calculating text width.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 6.0.2 </span><span class="s1">(</span><span class="s2">May 4, 2021</span><span class="s1">)</span>
+
+<span class="s2">This version is purely a cosmetic change, updating the maintainer's e-mail</span>
+<span class="s2">address and the project's canonical location on GitHub.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 6.0.1 </span><span class="s1">(</span><span class="s2">April 12, 2021</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">remove_terminal_escapes</span><span class="s3">` </span><span class="s2">step was accidentally not being used. This</span>
+  <span class="s2">version restores it.</span>
+
+<span class="s0">- </span><span class="s2">Specified in setup.py that ftfy 6 requires Python 3.6 or later.</span>
+
+<span class="s0">- </span><span class="s2">Use a lighter link color when the docs are viewed in dark mode.</span>
+
+<span class="s0">## </span><span class="s2">Version 6.0 </span><span class="s1">(</span><span class="s2">April 2, 2021</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">New function</span><span class="s1">: </span><span class="s3">`</span><span class="s2">ftfy.fix_and_explain</span><span class="s1">()</span><span class="s3">` </span><span class="s2">can describe all the transformations</span>
+  <span class="s2">that happen when fixing a string. This is similar to what</span>
+  <span class="s3">`</span><span class="s2">ftfy.fixes.fix_encoding_and_explain</span><span class="s1">()</span><span class="s3">` </span><span class="s2">did in previous versions, but it</span>
+  <span class="s2">can fix more than the encoding.</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">fix_and_explain</span><span class="s1">()</span><span class="s3">` </span><span class="s2">and </span><span class="s3">`</span><span class="s2">fix_encoding_and_explain</span><span class="s1">()</span><span class="s3">` </span><span class="s2">are now in the top-level</span>
+  <span class="s2">ftfy module.</span>
+
+<span class="s0">- </span><span class="s2">Changed the heuristic entirely. ftfy no longer needs to categorize every</span>
+  <span class="s2">Unicode character, but only characters that are expected to appear in</span>
+  <span class="s2">mojibake.</span>
+
+<span class="s0">- </span><span class="s2">Because of the new heuristic, ftfy will no longer have to release a new</span>
+  <span class="s2">version for every new version of Unicode. It should also run faster and</span>
+  <span class="s2">use less RAM when imported.</span>
+
+<span class="s0">- </span><span class="s2">The heuristic </span><span class="s3">`</span><span class="s2">ftfy.badness.is_bad</span><span class="s1">(</span><span class="s2">text</span><span class="s1">)</span><span class="s3">` </span><span class="s2">can be used to determine whether</span>
+  <span class="s2">there appears to be mojibake in a string. Some users were already using</span>
+  <span class="s2">the old function </span><span class="s3">`</span><span class="s2">sequence_weirdness</span><span class="s1">()</span><span class="s3">` </span><span class="s2">for that, but this one is actually</span>
+  <span class="s2">designed for that purpose.</span>
+
+<span class="s0">- </span><span class="s2">Instead of a pile of named keyword arguments, ftfy functions now take in</span>
+  <span class="s2">a TextFixerConfig object. The keyword arguments still work, and become</span>
+  <span class="s2">settings that override the defaults in TextFixerConfig.</span>
+
+<span class="s0">- </span><span class="s2">Added support for UTF-8 mixups with Windows-1253 and Windows-1254.</span>
+
+<span class="s0">- </span><span class="s2">Overhauled the documentation</span><span class="s1">: https://ftfy.readthedocs.org</span>
+
+<span class="s0">## </span><span class="s2">Version 5.9 </span><span class="s1">(</span><span class="s2">February 10, 2021</span><span class="s1">)</span>
+
+<span class="s2">This version is brought to you by the letter à and the number 0xC3.</span>
+
+<span class="s0">- </span><span class="s2">Tweaked the heuristic to decode, for example, </span><span class="s1">&quot;</span><span class="s2">Ã&amp;nbsp;</span><span class="s1">&quot; </span><span class="s2">as the letter </span><span class="s1">&quot;</span><span class="s2">à</span><span class="s1">&quot;</span>
+  <span class="s2">more often.</span>
+
+<span class="s0">- </span><span class="s2">This combines with the non-breaking-space fixer to decode </span><span class="s1">&quot;</span><span class="s2">Ã </span><span class="s1">&quot; </span><span class="s2">as </span><span class="s1">&quot;</span><span class="s2">à</span><span class="s1">&quot; </span><span class="s2">as</span>
+  <span class="s2">well. However, in many cases, the text </span><span class="s1">&quot; </span><span class="s2">Ã </span><span class="s1">&quot; </span><span class="s2">was intended to be </span><span class="s1">&quot; </span><span class="s2">à </span><span class="s1">&quot;</span><span class="s2">,</span>
+  <span class="s2">preserving the space -- the underlying mojibake had two spaces after it, but</span>
+  <span class="s2">the Web coalesced them into one. We detect this case based on common French</span>
+  <span class="s2">and Portuguese words, and preserve the space when it appears intended.</span>
+
+<span class="s2">Thanks to @zehavoc for bringing to my attention how common this case is.</span>
+
+<span class="s0">- </span><span class="s2">Updated the data file of Unicode character categories to Unicode 13, as</span>
+  <span class="s2">used in Python 3.9. </span><span class="s1">(</span><span class="s2">No matter what version of Python you're on, ftfy uses</span>
+  <span class="s2">the same data.</span><span class="s1">)</span>
+
+<span class="s0">## </span><span class="s2">Version 5.8 </span><span class="s1">(</span><span class="s2">July 17, 2020</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Improved detection of UTF-8 mojibake of Greek, Cyrillic, Hebrew, and Arabic</span>
+  <span class="s2">scripts.</span>
+
+<span class="s0">- </span><span class="s2">Fixed the undeclared dependency on setuptools by removing the use of</span>
+  <span class="s3">`</span><span class="s2">pkg_resources</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">## </span><span class="s2">Version 5.7 </span><span class="s1">(</span><span class="s2">February 18, 2020</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Updated the data file of Unicode character categories to Unicode 12.1, as</span>
+  <span class="s2">used in Python 3.8. </span><span class="s1">(</span><span class="s2">No matter what version of Python you're on, ftfy uses</span>
+  <span class="s2">the same data.</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Corrected an omission where short sequences involving the ACUTE ACCENT</span>
+  <span class="s2">character were not being fixed.</span>
+
+<span class="s0">## </span><span class="s2">Version 5.6 </span><span class="s1">(</span><span class="s2">August 7, 2019</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">unescape_html</span><span class="s3">` </span><span class="s2">function now supports all the HTML5 entities that appear</span>
+  <span class="s2">in </span><span class="s3">`</span><span class="s2">html.entities.html5</span><span class="s3">`</span><span class="s2">, including those with long names such as</span>
+  <span class="s3">`</span><span class="s2">&amp;DiacriticalDoubleAcute;</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s2">Unescaping of numeric HTML entities now uses the standard library's</span>
+  <span class="s3">`</span><span class="s2">html.unescape</span><span class="s3">`</span><span class="s2">, making edge cases consistent.</span>
+
+  <span class="s1">(</span><span class="s2">The reason we don't run </span><span class="s3">`</span><span class="s2">html.unescape</span><span class="s3">` </span><span class="s2">on all text is that it's not always</span>
+  <span class="s2">appropriate to apply, and can lead to false positive fixes. The text</span>
+  <span class="s1">&quot;</span><span class="s2">This&amp;NotThat</span><span class="s1">&quot; </span><span class="s2">should not have </span><span class="s1">&quot;</span><span class="s2">&amp;Not</span><span class="s1">&quot; </span><span class="s2">replaced by a symbol, as</span>
+  <span class="s3">`</span><span class="s2">html.unescape</span><span class="s3">` </span><span class="s2">would do.</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">On top of Python's support for HTML5 entities, ftfy will also convert HTML</span>
+  <span class="s2">escapes of common Latin capital letters that are </span><span class="s1">(</span><span class="s2">nonstandardly</span><span class="s1">) </span><span class="s2">written</span>
+  <span class="s2">in all caps, such as </span><span class="s3">`</span><span class="s2">&amp;NTILDE;</span><span class="s3">` </span><span class="s2">for </span><span class="s3">`</span><span class="s2">Ñ</span><span class="s3">`</span><span class="s2">.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.5.1 </span><span class="s1">(</span><span class="s2">September 14, 2018</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Added Python 3.7 support.</span>
+
+<span class="s0">- </span><span class="s2">Updated the data file of Unicode character categories to Unicode 11, as used</span>
+  <span class="s2">in Python 3.7.0. </span><span class="s1">(</span><span class="s2">No matter what version of Python you're on, ftfy uses the</span>
+  <span class="s2">same data.</span><span class="s1">)</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.5 </span><span class="s1">(</span><span class="s2">September 6, 2018</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Recent versions have emphasized making a reasonable attempt to fix short,</span>
+  <span class="s2">common mojibake sequences, such as </span><span class="s3">`</span><span class="s2">Ã»</span><span class="s3">`</span><span class="s2">. In this version, we've expanded the</span>
+  <span class="s2">heuristics to recognize these sequences in MacRoman as well as Windows-125x</span>
+  <span class="s2">encodings.</span>
+
+<span class="s0">- </span><span class="s2">A related rule for fixing isolated Windows-1252/UTF-8 mixups, even when they</span>
+  <span class="s2">were inconsistent with the rest of the string, claimed to work on Latin-1/UTF-8</span>
+  <span class="s2">mixups as well, but in practice it didn't. We've made the rule more robust.</span>
+
+<span class="s0">- </span><span class="s2">Fixed a failure when testing the CLI on Windows.</span>
+
+<span class="s0">- </span><span class="s2">Removed the </span><span class="s3">`</span><span class="s2">pytest-runner</span><span class="s3">` </span><span class="s2">invocation from setup.py, as it created complex</span>
+  <span class="s2">dependencies that would stop setup.py from working in some environments.</span>
+  <span class="s2">The </span><span class="s3">`</span><span class="s2">pytest</span><span class="s3">` </span><span class="s2">command still works fine. </span><span class="s3">`</span><span class="s2">pytest-runner</span><span class="s3">` </span><span class="s2">is just too clever.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.4.1 </span><span class="s1">(</span><span class="s2">June 14, 2018</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fixed a bug in the </span><span class="s3">`</span><span class="s2">setup.py</span><span class="s3">` </span><span class="s2">metadata.</span>
+
+  <span class="s2">This bug was causing ftfy, a package that fixes encoding mismatches, to not</span>
+  <span class="s2">install in some environments due to an encoding mismatch. </span><span class="s1">(</span><span class="s2">We were really</span>
+  <span class="s2">putting the </span><span class="s1">&quot;</span><span class="s2">meta</span><span class="s1">&quot; </span><span class="s2">in </span><span class="s1">&quot;</span><span class="s2">metadata</span><span class="s1">&quot; </span><span class="s2">here.</span><span class="s1">)</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.4 </span><span class="s1">(</span><span class="s2">June 1, 2018</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">ftfy was still too conservative about fixing short mojibake sequences,</span>
+  <span class="s2">such as </span><span class="s1">&quot;</span><span class="s2">aoÃ»t</span><span class="s1">&quot; </span><span class="s2">-</span><span class="s1">&gt; &quot;</span><span class="s2">août</span><span class="s1">&quot;</span><span class="s2">, when the broken version contained punctuation</span>
+  <span class="s2">such as curly or angle quotation marks.</span>
+
+  <span class="s2">The new heuristic observes in some cases that, even if quotation marks are</span>
+  <span class="s2">expected to appear next to letters, it is strange to have an accented capital</span>
+  <span class="s2">A before the quotation mark and more letters after the quotation mark.</span>
+
+<span class="s0">- </span><span class="s2">Provides better metadata for the new PyPI.</span>
+
+<span class="s0">- </span><span class="s2">Switched from nosetests to pytest.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.3 </span><span class="s1">(</span><span class="s2">January 25, 2018</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">A heuristic has been too conservative since version 4.2, causing a regression</span>
+  <span class="s2">compared to previous versions</span><span class="s1">: </span><span class="s2">ftfy would fail to fix mojibake of common</span>
+  <span class="s2">characters such as </span><span class="s3">`</span><span class="s2">á</span><span class="s3">` </span><span class="s2">when seen in isolation. A new heuristic now makes it</span>
+  <span class="s2">possible to fix more of these common cases with less evidence.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.2 </span><span class="s1">(</span><span class="s2">November 27, 2017</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">The command-line tool will not accept the same filename as its input</span>
+  <span class="s2">and output. </span><span class="s1">(</span><span class="s2">Previously, this would write a zero-length file.</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">uncurl_quotes</span><span class="s3">` </span><span class="s2">fixer, which replaces curly quotes with straight quotes,</span>
+  <span class="s2">now also replaces MODIFIER LETTER APOSTROPHE.</span>
+
+<span class="s0">- </span><span class="s2">Codepoints that contain two Latin characters crammed together for legacy</span>
+  <span class="s2">encoding reasons are replaced by those two separate characters, even in NFC</span>
+  <span class="s2">mode. We formerly did this just with ligatures such as </span><span class="s3">`</span><span class="s2">ﬁ</span><span class="s3">` </span><span class="s2">and </span><span class="s3">`</span><span class="s2">Ĳ</span><span class="s3">`</span><span class="s2">, but now</span>
+  <span class="s2">this includes the Afrikaans digraph </span><span class="s3">`</span><span class="s2">ŉ</span><span class="s3">` </span><span class="s2">and Serbian/Croatian digraphs such as</span>
+  <span class="s3">`</span><span class="s2">ǆ</span><span class="s3">`</span><span class="s2">.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.1.1 and 4.4.3 </span><span class="s1">(</span><span class="s2">May 15, 2017</span><span class="s1">)</span>
+
+<span class="s2">These releases fix two unrelated problems with the tests, one in each version.</span>
+
+<span class="s0">- </span><span class="s2">v5.1.1</span><span class="s1">: </span><span class="s2">fixed the CLI tests </span><span class="s1">(</span><span class="s2">which are new in v5</span><span class="s1">) </span><span class="s2">so that they pass</span>
+  <span class="s2">on Windows, as long as the Python output encoding is UTF-8.</span>
+
+<span class="s0">- </span><span class="s2">v4.4.3</span><span class="s1">: </span><span class="s2">added the </span><span class="s3">`</span><span class="s2"># coding</span><span class="s1">: </span><span class="s2">utf-8</span><span class="s3">` </span><span class="s2">declaration to two files that were</span>
+  <span class="s2">missing it, so that tests can run on Python 2.</span>
+
+<span class="s0">## </span><span class="s2">Version 5.1 </span><span class="s1">(</span><span class="s2">April 7, 2017</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Removed the dependency on </span><span class="s3">`</span><span class="s2">html5lib</span><span class="s3">` </span><span class="s2">by dropping support for Python 3.2.</span>
+
+  <span class="s2">We previously used the dictionary </span><span class="s3">`</span><span class="s2">html5lib.constants.entities</span><span class="s3">` </span><span class="s2">to decode</span>
+  <span class="s2">HTML entities.  In Python 3.3 and later, that exact dictionary is now in the</span>
+  <span class="s2">standard library as </span><span class="s3">`</span><span class="s2">html.entities.html5</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s2">Moved many test cases about how particular text should be fixed into</span>
+  <span class="s3">`</span><span class="s2">test_cases.json</span><span class="s3">`</span><span class="s2">, which may ease porting to other languages.</span>
+
+<span class="s2">The functionality of this version remains the same as 5.0.2 and 4.4.2.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.0.2 and 4.4.2 </span><span class="s1">(</span><span class="s2">March 21, 2017</span><span class="s1">)</span>
+
+<span class="s2">Added a </span><span class="s3">`</span><span class="s2">MANIFEST.in</span><span class="s3">` </span><span class="s2">that puts files such as the license file and this</span>
+<span class="s2">changelog inside the source distribution.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.0.1 and 4.4.1 </span><span class="s1">(</span><span class="s2">March 10, 2017</span><span class="s1">)</span>
+
+<span class="s2">Bug fix</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">unescape_html</span><span class="s3">` </span><span class="s2">fixer will decode entities between </span><span class="s3">`</span><span class="s2">&amp;#128;</span><span class="s3">` </span><span class="s2">and </span><span class="s3">`</span><span class="s2">&amp;#159;</span><span class="s3">`</span>
+  <span class="s2">as what they would be in Windows-1252, even without the help of</span>
+  <span class="s3">`</span><span class="s2">fix_encoding</span><span class="s3">`</span><span class="s2">.</span>
+
+  <span class="s2">This better matches what Web browsers do, and fixes a regression that version</span>
+  <span class="s2">4.4 introduced in an example that uses </span><span class="s3">`</span><span class="s2">&amp;#133;</span><span class="s3">` </span><span class="s2">as an ellipsis.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 5.0 </span><span class="s1">(</span><span class="s2">February 17, 2017</span><span class="s1">)</span>
+
+<span class="s2">Breaking changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">Dropped support for Python 2. If you need Python 2 support, you should get</span>
+  <span class="s2">version 4.4, which has the same features as this version.</span>
+
+<span class="s0">- </span><span class="s2">The top-level functions require their arguments to be given as keyword</span>
+  <span class="s2">arguments.</span>
+
+<span class="s2">Version 5.0 also now has tests for the command-line invocation of ftfy.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 4.4.0 </span><span class="s1">(</span><span class="s2">February 17, 2017</span><span class="s1">)</span>
+
+<span class="s2">Heuristic changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">ftfy can now fix mojibake involving the Windows-1250 or ISO-8859-2 encodings.</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">fix_entities</span><span class="s3">` </span><span class="s2">fixer is now applied after </span><span class="s3">`</span><span class="s2">fix_encoding</span><span class="s3">`</span><span class="s2">. This makes</span>
+  <span class="s2">more situations resolvable when both fixes are needed.</span>
+
+<span class="s0">- </span><span class="s2">With a few exceptions for commonly-used characters such as </span><span class="s3">`</span><span class="s2">^</span><span class="s3">`</span><span class="s2">, it is now</span>
+  <span class="s2">considered </span><span class="s1">&quot;</span><span class="s2">weird</span><span class="s1">&quot; </span><span class="s2">whenever a diacritic appears in non-combining form,</span>
+  <span class="s2">such as the diaeresis character </span><span class="s3">`</span><span class="s2">¨</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s2">It is also now weird when IPA phonetic letters, besides </span><span class="s3">`</span><span class="s2">ə</span><span class="s3">`</span><span class="s2">, appear next to</span>
+  <span class="s2">capital letters.</span>
+
+<span class="s0">- </span><span class="s2">These changes to the heuristics, and others we've made in recent versions,</span>
+  <span class="s2">let us lower the </span><span class="s1">&quot;</span><span class="s2">cost</span><span class="s1">&quot; </span><span class="s2">for fixing mojibake in some encodings, causing them</span>
+  <span class="s2">to be fixed in more cases.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 4.3.1 </span><span class="s1">(</span><span class="s2">January 12, 2017</span><span class="s1">)</span>
+
+<span class="s2">Bug fix</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">remove_control_chars</span><span class="s3">` </span><span class="s2">was removing U+0D </span><span class="s1">('</span><span class="s2">\r'</span><span class="s1">) </span><span class="s2">prematurely. That's the</span>
+  <span class="s2">job of </span><span class="s3">`</span><span class="s2">fix_line_breaks</span><span class="s3">`</span><span class="s2">.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 4.3.0 </span><span class="s1">(</span><span class="s2">December 29, 2016</span><span class="s1">)</span>
+
+<span class="s2">ftfy has gotten by for four years without dependencies on other Python</span>
+<span class="s2">libraries, but now we can spare ourselves some code and some maintenance burden</span>
+<span class="s2">by delegating certain tasks to other libraries that already solve them well.</span>
+<span class="s2">This version now depends on the </span><span class="s3">`</span><span class="s2">html5lib</span><span class="s3">` </span><span class="s2">and </span><span class="s3">`</span><span class="s2">wcwidth</span><span class="s3">` </span><span class="s2">libraries.</span>
+
+<span class="s2">Feature changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">remove_control_chars</span><span class="s3">` </span><span class="s2">fixer will now remove some non-ASCII control</span>
+  <span class="s2">characters as well, such as deprecated Arabic control characters and</span>
+  <span class="s2">byte-order marks. Bidirectional controls are still left as is.</span>
+
+  <span class="s2">This should have no impact on well-formed text, while cleaning up many</span>
+  <span class="s2">characters that the Unicode Consortium deems </span><span class="s1">&quot;</span><span class="s2">not suitable for markup</span><span class="s1">&quot;</span>
+  <span class="s1">(</span><span class="s2">see Unicode Technical Report #20</span><span class="s1">)</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">unescape_html</span><span class="s3">` </span><span class="s2">fixer uses a more thorough list of HTML entities,</span>
+  <span class="s2">which it imports from </span><span class="s3">`</span><span class="s2">html5lib</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">ftfy.formatting</span><span class="s3">` </span><span class="s2">now uses </span><span class="s3">`</span><span class="s2">wcwidth</span><span class="s3">` </span><span class="s2">to compute the width that a string</span>
+  <span class="s2">will occupy in a text console.</span>
+
+<span class="s2">Heuristic changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">Updated the data file of Unicode character categories to Unicode 9, as used</span>
+  <span class="s2">in Python 3.6.0. </span><span class="s1">(</span><span class="s2">No matter what version of Python you're on, ftfy uses the</span>
+  <span class="s2">same data.</span><span class="s1">)</span>
+
+<span class="s2">Pending deprecations</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">remove_bom</span><span class="s3">` </span><span class="s2">option will become deprecated in 5.0, because it has been</span>
+  <span class="s2">superseded by </span><span class="s3">`</span><span class="s2">remove_control_chars</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s2">ftfy 5.0 will remove the previously deprecated name </span><span class="s3">`</span><span class="s2">fix_text_encoding</span><span class="s3">`</span><span class="s2">. It</span>
+  <span class="s2">was renamed to </span><span class="s3">`</span><span class="s2">fix_encoding</span><span class="s3">` </span><span class="s2">in 4.0.</span>
+
+<span class="s0">- </span><span class="s2">ftfy 5.0 will require Python 3.2 or later, as planned. Python 2 users, please</span>
+  <span class="s2">specify </span><span class="s3">`</span><span class="s2">ftfy </span><span class="s1">&lt; </span><span class="s2">5</span><span class="s3">` </span><span class="s2">in your dependencies if you haven't already.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 4.2.0 </span><span class="s1">(</span><span class="s2">September 28, 2016</span><span class="s1">)</span>
+
+<span class="s2">Heuristic changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">Math symbols next to currency symbols are no longer considered </span><span class="s1">'</span><span class="s2">weird' by the</span>
+  <span class="s2">heuristic. This fixes a false positive where text that involved the</span>
+  <span class="s2">multiplication sign and British pounds or euros </span><span class="s1">(</span><span class="s2">as in </span><span class="s1">'</span><span class="s2">5×£35'</span><span class="s1">) </span><span class="s2">could turn</span>
+  <span class="s2">into Hebrew letters.</span>
+
+<span class="s0">- </span><span class="s2">A heuristic that used to be a bonus for certain punctuation now also gives a</span>
+  <span class="s2">bonus to successfully decoding other common codepoints, such as the</span>
+  <span class="s2">non-breaking space, the degree sign, and the byte order mark.</span>
+
+<span class="s0">- </span><span class="s2">In version 4.0, we tried to </span><span class="s1">&quot;</span><span class="s2">future-proof</span><span class="s1">&quot; </span><span class="s2">the categorization of emoji </span><span class="s1">(</span><span class="s2">as a</span>
+  <span class="s2">kind of symbol</span><span class="s1">) </span><span class="s2">to include codepoints that would likely be assigned to emoji</span>
+  <span class="s2">later. The future happened, and there are even more emoji than we expected.</span>
+  <span class="s2">We have expanded the range to include those emoji, too.</span>
+
+  <span class="s2">ftfy is still mostly based on information from Unicode 8 </span><span class="s1">(</span><span class="s2">as Python 3.5 is</span><span class="s1">)</span><span class="s2">,</span>
+  <span class="s2">but this expanded range should include the emoji from Unicode 9 and 10.</span>
+
+<span class="s0">- </span><span class="s2">Emoji are increasingly being modified by variation selectors and skin-tone</span>
+  <span class="s2">modifiers. Those codepoints are now grouped with </span><span class="s1">'</span><span class="s2">symbols' in ftfy, so they</span>
+  <span class="s2">fit right in with emoji, instead of being considered </span><span class="s1">'</span><span class="s2">marks' as their Unicode</span>
+  <span class="s2">category would suggest.</span>
+
+  <span class="s2">This enables fixing mojibake that involves iOS's new diverse emoji.</span>
+
+<span class="s0">- </span><span class="s2">An old heuristic that wasn't necessary anymore considered Latin text with</span>
+  <span class="s2">high-numbered codepoints to be </span><span class="s1">'</span><span class="s2">weird', but this is normal in languages such</span>
+  <span class="s2">as Vietnamese and Azerbaijani. This does not seem to have caused any false</span>
+  <span class="s2">positives, but it caused ftfy to be too reluctant to fix some cases of broken</span>
+  <span class="s2">text in those languages.</span>
+
+  <span class="s2">The heuristic has been changed, and all languages that use Latin letters</span>
+  <span class="s2">should be on even footing now.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 4.1.1 </span><span class="s1">(</span><span class="s2">April 13, 2016</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Bug fix</span><span class="s1">: </span><span class="s2">in the command-line interface, the </span><span class="s3">`</span><span class="s2">-e</span><span class="s3">` </span><span class="s2">option had no effect on</span>
+  <span class="s2">Python 3 when using standard input. Now, it correctly lets you specify</span>
+  <span class="s2">a different encoding for standard input.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 4.1.0 </span><span class="s1">(</span><span class="s2">February 25, 2016</span><span class="s1">)</span>
+
+<span class="s2">Heuristic changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">ftfy can now deal with </span><span class="s1">&quot;</span><span class="s2">lossy</span><span class="s1">&quot; </span><span class="s2">mojibake. If your text has been run through</span>
+  <span class="s2">a strict Windows-1252 decoder, such as the one in Python, it may contain</span>
+  <span class="s2">the replacement character � </span><span class="s1">(</span><span class="s2">U+FFFD</span><span class="s1">) </span><span class="s2">where there were bytes that are</span>
+  <span class="s2">unassigned in Windows-1252.</span>
+
+  <span class="s2">Although ftfy won't recover the lost information, it can now detect this</span>
+  <span class="s2">situation, replace the entire lossy character with �, and decode the rest of</span>
+  <span class="s2">the characters. Previous versions would be unable to fix any string that</span>
+  <span class="s2">contained U+FFFD.</span>
+
+  <span class="s2">As an example, text in curly quotes that gets corrupted </span><span class="s3">`</span><span class="s2">â€œ like this â€�</span><span class="s3">`</span>
+  <span class="s2">now gets fixed to be </span><span class="s3">`</span><span class="s2">“ like this �</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s2">Updated the data file of Unicode character categories to Unicode 8.0, as used</span>
+  <span class="s2">in Python 3.5.0. </span><span class="s1">(</span><span class="s2">No matter what version of Python you're on, ftfy uses the</span>
+  <span class="s2">same data.</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Heuristics now count characters such as </span><span class="s3">`</span><span class="s1">~</span><span class="s3">` </span><span class="s2">and </span><span class="s3">`</span><span class="s2">^</span><span class="s3">` </span><span class="s2">as punctuation instead</span>
+  <span class="s2">of wacky math symbols, improving the detection of mojibake in some edge cases.</span>
+
+<span class="s2">New features</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">A new module, </span><span class="s3">`</span><span class="s2">ftfy.formatting</span><span class="s3">`</span><span class="s2">, can be used to justify Unicode text in a</span>
+  <span class="s2">monospaced terminal. It takes into account that each character can take up</span>
+  <span class="s2">anywhere from 0 to 2 character cells.</span>
+
+<span class="s0">- </span><span class="s2">Internally, the </span><span class="s3">`</span><span class="s2">utf-8-variants</span><span class="s3">` </span><span class="s2">codec was simplified and optimized.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 4.0.0 </span><span class="s1">(</span><span class="s2">April 10, 2015</span><span class="s1">)</span>
+
+<span class="s2">Breaking changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">The default normalization form is now NFC, not NFKC. NFKC replaces a large</span>
+  <span class="s2">number of characters with </span><span class="s1">'</span><span class="s2">equivalent' characters, and some of these</span>
+  <span class="s2">replacements are useful, but some are not desirable to do by default.</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">fix_text</span><span class="s3">` </span><span class="s2">function has some new options that perform more targeted</span>
+  <span class="s2">operations that are part of NFKC normalization, such as</span>
+  <span class="s3">`</span><span class="s2">fix_character_width</span><span class="s3">`</span><span class="s2">, without requiring hitting all your text with the huge</span>
+  <span class="s2">mallet that is NFKC.</span>
+
+  <span class="s0">- </span><span class="s2">If you were already using NFC normalization, or in general if you want to</span>
+    <span class="s2">preserve the </span><span class="s1">*</span><span class="s2">spacing</span><span class="s1">* </span><span class="s2">of CJK text, you should be sure to set</span>
+    <span class="s3">`</span><span class="s2">fix_character_width=False</span><span class="s3">`</span><span class="s2">.</span>
+
+<span class="s0">- </span><span class="s2">The </span><span class="s3">`</span><span class="s2">remove_unsafe_private_use</span><span class="s3">` </span><span class="s2">parameter has been removed entirely, after</span>
+  <span class="s2">two versions of deprecation. The function name </span><span class="s3">`</span><span class="s2">fix_bad_encoding</span><span class="s3">` </span><span class="s2">is also</span>
+  <span class="s2">gone.</span>
+
+<span class="s2">New features</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">Fixers for strange new forms of mojibake, including particularly clear cases</span>
+  <span class="s2">of mixed UTF-8 and Windows-1252.</span>
+
+<span class="s0">- </span><span class="s2">New heuristics, so that ftfy can fix more stuff, while maintaining</span>
+  <span class="s2">approximately zero false positives.</span>
+
+<span class="s0">- </span><span class="s2">The command-line tool trusts you to know what encoding your </span><span class="s1">*</span><span class="s2">input</span><span class="s1">* </span><span class="s2">is in,</span>
+  <span class="s2">and assumes UTF-8 by default. You can still tell it to guess with the </span><span class="s3">`</span><span class="s2">-g</span><span class="s3">`</span>
+  <span class="s2">option.</span>
+
+<span class="s0">- </span><span class="s2">The command-line tool can be configured with options, and can be used as a</span>
+  <span class="s2">pipe.</span>
+
+<span class="s0">- </span><span class="s2">Recognizes characters that are new in Unicode 7.0, as well as emoji from</span>
+  <span class="s2">Unicode 8.0+ that may already be in use on iOS.</span>
+
+<span class="s2">Deprecations</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">fix_text_encoding</span><span class="s3">` </span><span class="s2">is being renamed again, for conciseness and consistency.</span>
+  <span class="s2">It's now simply called </span><span class="s3">`</span><span class="s2">fix_encoding</span><span class="s3">`</span><span class="s2">. The name </span><span class="s3">`</span><span class="s2">fix_text_encoding</span><span class="s3">` </span><span class="s2">is</span>
+  <span class="s2">available but emits a warning.</span>
+
+<span class="s2">Pending deprecations</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">Python 2.6 support is largely coincidental.</span>
+
+<span class="s0">- </span><span class="s2">Python 2.7 support is on notice. If you use Python 2, be sure to pin a</span>
+  <span class="s2">version of ftfy less than 5.0 in your requirements.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.4.0 </span><span class="s1">(</span><span class="s2">January 15, 2015</span><span class="s1">)</span>
+
+<span class="s2">New features</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">ftfy.fixes.fix_surrogates</span><span class="s3">` </span><span class="s2">will fix all 16-bit surrogate codepoints,</span>
+  <span class="s2">which would otherwise break various encoding and output functions.</span>
+
+<span class="s2">Deprecations</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">remove_unsafe_private_use</span><span class="s3">` </span><span class="s2">emits a warning, and will disappear in the</span>
+  <span class="s2">next minor or major version.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.3.1 </span><span class="s1">(</span><span class="s2">December 12, 2014</span><span class="s1">)</span>
+
+<span class="s2">This version restores compatibility with Python 2.6.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.3.0 </span><span class="s1">(</span><span class="s2">August 16, 2014</span><span class="s1">)</span>
+
+<span class="s2">Heuristic changes</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">Certain symbols are marked as </span><span class="s1">&quot;</span><span class="s2">ending punctuation</span><span class="s1">&quot; </span><span class="s2">that may naturally occur</span>
+  <span class="s2">after letters. When they follow an accented capital letter and look like</span>
+  <span class="s2">mojibake, they will not be </span><span class="s1">&quot;</span><span class="s2">fixed</span><span class="s1">&quot; </span><span class="s2">without further evidence.</span>
+  <span class="s2">An example is that </span><span class="s1">&quot;</span><span class="s2">MARQUÉ…</span><span class="s1">&quot; </span><span class="s2">will become </span><span class="s1">&quot;</span><span class="s2">MARQUÉ...</span><span class="s1">&quot;</span><span class="s2">, and not </span><span class="s1">&quot;</span><span class="s2">MARQUɅ</span><span class="s1">&quot;</span><span class="s2">.</span>
+
+<span class="s2">New features</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">ftfy.explain_unicode</span><span class="s3">` </span><span class="s2">is a diagnostic function that shows you what's going</span>
+  <span class="s2">on in a Unicode string. It shows you a table with each code point in</span>
+  <span class="s2">hexadecimal, its glyph, its name, and its Unicode category.</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">ftfy.fixes.decode_escapes</span><span class="s3">` </span><span class="s2">adds a feature missing from the standard library</span><span class="s1">:</span>
+  <span class="s2">it lets you decode a Unicode string with backslashed escape sequences in it</span>
+  <span class="s1">(</span><span class="s2">such as </span><span class="s1">&quot;</span><span class="s2">\u2014</span><span class="s1">&quot;) </span><span class="s2">the same way that Python itself would.</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">ftfy.streamtester</span><span class="s3">` </span><span class="s2">is a release of the code that I use to test ftfy on</span>
+  <span class="s2">an endless stream of real-world data from Twitter. With the new heuristics,</span>
+  <span class="s2">the false positive rate of ftfy is about 1 per 6 million tweets. </span><span class="s1">(</span><span class="s2">See</span>
+  <span class="s2">the </span><span class="s1">&quot;</span><span class="s2">Accuracy</span><span class="s1">&quot; </span><span class="s2">section of the documentation.</span><span class="s1">)</span>
+
+<span class="s2">Deprecations</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s2">Python 2.6 is no longer supported.</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">remove_unsafe_private_use</span><span class="s3">` </span><span class="s2">is no longer needed in any current version of</span>
+  <span class="s2">Python. This fixer will disappear in a later version of ftfy.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.2.0 </span><span class="s1">(</span><span class="s2">June 27, 2014</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">fix_line_breaks</span><span class="s3">` </span><span class="s2">fixes three additional characters that are considered line</span>
+  <span class="s2">breaks in some environments, such as Javascript, and Python's </span><span class="s1">&quot;</span><span class="s2">codecs</span><span class="s1">&quot;</span>
+  <span class="s2">library. These are all now replaced with \n</span><span class="s1">:</span>
+
+      <span class="s3">U+0085   &lt;control&gt;, with alias &quot;NEXT LINE&quot;</span>
+      <span class="s3">U+2028   LINE SEPARATOR</span>
+      <span class="s3">U+2029   PARAGRAPH SEPARATOR</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.1.3 </span><span class="s1">(</span><span class="s2">May 15, 2014</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fix </span><span class="s3">`</span><span class="s2">utf-8-variants</span><span class="s3">` </span><span class="s2">so it never outputs surrogate codepoints, even on</span>
+  <span class="s2">Python 2 where that would otherwise be possible.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.1.2 </span><span class="s1">(</span><span class="s2">January 29, 2014</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fix bug in 3.1.1 where strings with backslashes in them could never be fixed</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.1.1 </span><span class="s1">(</span><span class="s2">January 29, 2014</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Add the </span><span class="s3">`</span><span class="s2">ftfy.bad_codecs</span><span class="s3">` </span><span class="s2">package, which registers new codecs that can</span>
+  <span class="s2">decoding things that Python may otherwise refuse to decode</span><span class="s1">:</span>
+
+  <span class="s0">- </span><span class="s3">`</span><span class="s2">utf-8-variants</span><span class="s3">`</span><span class="s2">, which decodes CESU-8 and its Java lookalike</span>
+
+  <span class="s0">- </span><span class="s3">`</span><span class="s2">sloppy-windows-</span><span class="s1">*</span><span class="s3">`</span><span class="s2">, which decodes character-map encodings while treating</span>
+    <span class="s2">unmapped characters as Latin-1</span>
+
+<span class="s0">- </span><span class="s2">Simplify the code using </span><span class="s3">`</span><span class="s2">ftfy.bad_codecs</span><span class="s3">`</span><span class="s2">.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.0.6 </span><span class="s1">(</span><span class="s2">November 5, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s3">`</span><span class="s2">fix_entities</span><span class="s3">` </span><span class="s2">can now be True, False, or </span><span class="s1">'</span><span class="s2">auto'. The new case is True, which</span>
+  <span class="s2">will decode all entities, even in text that already contains angle brackets.</span>
+  <span class="s2">This may also be faster, because it doesn't have to check.</span>
+<span class="s0">- </span><span class="s3">`</span><span class="s2">build_data.py</span><span class="s3">` </span><span class="s2">will refuse to run on Python </span><span class="s1">&lt; </span><span class="s2">3.3, to prevent building</span>
+  <span class="s2">an inconsistent data file.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.0.5 </span><span class="s1">(</span><span class="s2">November 1, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fix the arguments to </span><span class="s3">`</span><span class="s2">fix_file</span><span class="s3">`</span><span class="s2">, because they were totally wrong.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.0.4 </span><span class="s1">(</span><span class="s2">October 1, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Restore compatibility with Python 2.6.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.0.3 </span><span class="s1">(</span><span class="s2">September 9, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fixed an ugly regular expression bug that prevented ftfy from importing on a</span>
+  <span class="s2">narrow build of Python.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.0.2 </span><span class="s1">(</span><span class="s2">September 4, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fixed some false positives.</span>
+
+  <span class="s0">- </span><span class="s2">Basically, 3.0.1 was too eager to treat text as MacRoman or cp437 when</span>
+    <span class="s2">three consecutive characters coincidentally decoded as UTF-8. Increased the</span>
+    <span class="s2">cost of those encodings so that they have to successfully decode multiple</span>
+    <span class="s2">UTF-8 characters.</span>
+
+  <span class="s0">- </span><span class="s2">See </span><span class="s3">`</span><span class="s2">tests/test_real_tweets.py</span><span class="s3">` </span><span class="s2">for the new test cases that were added as a</span>
+    <span class="s2">result.</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.0.1 </span><span class="s1">(</span><span class="s2">August 30, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fix bug in </span><span class="s3">`</span><span class="s2">fix_java_encoding</span><span class="s3">` </span><span class="s2">that led to only the first instance of</span>
+  <span class="s2">CESU-8 badness per line being fixed</span>
+<span class="s0">- </span><span class="s2">Add a fixer that removes unassigned characters that can break Python 3.3</span>
+  <span class="s1">(http://bugs.python.org/issue18183)</span>
+
+
+<span class="s0">## </span><span class="s2">Version 3.0 </span><span class="s1">(</span><span class="s2">August 26, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Generally runs faster</span>
+<span class="s0">- </span><span class="s2">Idempotent</span>
+<span class="s0">- </span><span class="s2">Simplified decoding logic</span>
+<span class="s0">- </span><span class="s2">Understands more encodings and more kinds of mistakes</span>
+<span class="s0">- </span><span class="s2">Takes options that enable or disable particular normalization steps</span>
+<span class="s0">- </span><span class="s2">Long line handling</span><span class="s1">: </span><span class="s2">now the time-consuming step </span><span class="s1">(</span><span class="s3">`</span><span class="s2">fix_text_encoding</span><span class="s3">`</span><span class="s1">) </span><span class="s2">will be</span>
+  <span class="s2">consistently skipped on long lines, but all other fixes will apply</span>
+<span class="s0">- </span><span class="s2">Tested on millions of examples from Twitter, ensuring a near-zero rate of</span>
+  <span class="s2">false positives</span>
+
+
+<span class="s0">## </span><span class="s2">Version 2.0.2 </span><span class="s1">(</span><span class="s2">June 20, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Fix breaking up of long lines, so it can't go into an infinite loop</span>
+
+
+<span class="s0">## </span><span class="s2">Version 2.0.1 </span><span class="s1">(</span><span class="s2">March 19, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Restored Python 2.6 support</span>
+
+
+<span class="s0">## </span><span class="s2">Version 2.0 </span><span class="s1">(</span><span class="s2">January 30, 2013</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Python 3 support</span>
+<span class="s0">- </span><span class="s2">Use fast Python built-ins to speed up fixes</span>
+<span class="s0">- </span><span class="s2">Bugfixes</span>
+
+
+<span class="s0">## </span><span class="s2">Version 1.0 </span><span class="s1">(</span><span class="s2">August 24, 2012</span><span class="s1">)</span>
+
+<span class="s0">- </span><span class="s2">Made into its own package with no dependencies, instead of a part of</span>
+  <span class="s3">`</span><span class="s2">metanl</span><span class="s3">`</span>
+</pre>
+</body>
+</html>

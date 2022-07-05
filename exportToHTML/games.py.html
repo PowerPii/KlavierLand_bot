@@ -1,0 +1,142 @@
+<html>
+<head>
+<title>games.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6897bb;}
+.s3 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+games.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">json</span>
+<span class="s0">import </span><span class="s1">math</span>
+<span class="s0">import </span><span class="s1">random</span>
+<span class="s0">import </span><span class="s1">time</span>
+
+<span class="s0">from </span><span class="s1">utils </span><span class="s0">import </span><span class="s1">update_json</span>
+
+
+<span class="s0">def </span><span class="s1">max_exp(player: dict):</span>
+    <span class="s0">return </span><span class="s1">int(math.pow(</span><span class="s2">10</span><span class="s0">, </span><span class="s1">player[</span><span class="s3">&quot;game_level&quot;</span><span class="s1">] + </span><span class="s2">1</span><span class="s1">))</span>
+
+
+<span class="s0">def </span><span class="s1">is_level_up(player: dict):</span>
+    <span class="s0">if </span><span class="s1">player[</span><span class="s3">&quot;game_exp&quot;</span><span class="s1">] &gt;= max_exp(player):</span>
+        <span class="s0">return True</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">return False</span>
+
+
+<span class="s0">def </span><span class="s1">dice(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">players = json.load(open(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+    <span class="s1">text = update.message.text.split(</span><span class="s3">&quot; &quot;</span><span class="s1">)</span>
+
+    <span class="s1">bet_amount = </span><span class="s3">&quot;x&quot;</span>
+
+    <span class="s0">try</span><span class="s1">:</span>
+        <span class="s1">bet_amount = int(text[</span><span class="s2">1</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">text[</span><span class="s2">1</span><span class="s1">].isnumeric() </span><span class="s0">else </span><span class="s3">&quot;x&quot;</span>
+    <span class="s0">except </span><span class="s1">IndexError:</span>
+        <span class="s0">pass</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">players.keys():</span>
+        <span class="s1">player = players[chat_id]</span>
+
+        <span class="s0">if </span><span class="s1">len(text) == </span><span class="s2">2 </span><span class="s0">and </span><span class="s1">isinstance(bet_amount</span><span class="s0">, </span><span class="s1">int):</span>
+            <span class="s0">if </span><span class="s1">player[</span><span class="s3">&quot;game_date&quot;</span><span class="s1">] &lt; int(time.time()):</span>
+                <span class="s0">if </span><span class="s1">bet_amount </span><span class="s0">not in </span><span class="s1">range(</span><span class="s2">1</span><span class="s0">, </span><span class="s2">51</span><span class="s1">):</span>
+                    <span class="s1">over_bet_text = </span><span class="s3">&quot;&lt;code&gt;Error : Bet not in between 1 and 50 quavers&lt;/code&gt;&quot;</span>
+
+                    <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=over_bet_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+                <span class="s0">elif </span><span class="s1">player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">] &gt;= bet_amount:</span>
+                    <span class="s1">player[</span><span class="s3">&quot;game_date&quot;</span><span class="s1">] = int(time.time()) + </span><span class="s2">900</span>
+                    <span class="s1">player_die_total</span><span class="s0">, </span><span class="s1">bot_die_total = </span><span class="s2">0</span><span class="s0">, </span><span class="s2">0</span>
+
+                    <span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range(</span><span class="s2">2</span><span class="s1">):</span>
+                        <span class="s1">player_die_total += random.randint(</span><span class="s2">1</span><span class="s0">, </span><span class="s2">6</span><span class="s1">)</span>
+                    <span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range(</span><span class="s2">2</span><span class="s1">):</span>
+                        <span class="s1">bot_die_total += random.randint(</span><span class="s2">1</span><span class="s0">, </span><span class="s2">6</span><span class="s1">)</span>
+
+                    <span class="s1">summary_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}\'</span><span class="s3">s dice game summary</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s3">f&quot;&lt;code&gt;-------------------------------</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s3">f&quot;&lt;code&gt;Your total    : </span><span class="s0">{</span><span class="s1">player_die_total</span><span class="s0">}\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s3">f&quot;&lt;code&gt;Bot total     : </span><span class="s0">{</span><span class="s1">bot_die_total</span><span class="s0">}\n</span><span class="s3">&lt;/code&gt;&quot;</span>
+
+                    <span class="s0">if </span><span class="s1">player_die_total &gt; bot_die_total:</span>
+                        <span class="s1">winning = int(math.floor(bet_amount * player[</span><span class="s3">&quot;game_increment&quot;</span><span class="s1">]))</span>
+                        <span class="s1">player[</span><span class="s3">&quot;game_exp&quot;</span><span class="s1">] += </span><span class="s2">1</span>
+                        <span class="s1">player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">] += winning</span>
+
+                        <span class="s1">summary_text += </span><span class="s3">f&quot;&lt;code&gt;You win </span><span class="s0">{</span><span class="s1">winning</span><span class="s0">} </span><span class="s3">quavers!&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+
+                    <span class="s0">elif </span><span class="s1">player_die_total == bot_die_total:</span>
+                        <span class="s1">summary_text += </span><span class="s3">&quot;&lt;code&gt;It</span><span class="s0">\'</span><span class="s3">s a tie</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot;</span>
+
+                    <span class="s0">else</span><span class="s1">:</span>
+                        <span class="s1">player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">] -= bet_amount</span>
+
+                        <span class="s1">summary_text += </span><span class="s3">f&quot;&lt;code&gt;You lost </span><span class="s0">{</span><span class="s1">bet_amount</span><span class="s0">} </span><span class="s3">quavers</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+
+                    <span class="s1">quavers = player[</span><span class="s3">&quot;quavers&quot;</span><span class="s1">]</span>
+                    <span class="s1">game_exp = player[</span><span class="s3">&quot;game_exp&quot;</span><span class="s1">]</span>
+                    <span class="s1">game_level = player[</span><span class="s3">&quot;game_level&quot;</span><span class="s1">]</span>
+
+                    <span class="s1">summary_text += </span><span class="s3">f&quot;&lt;code&gt;-------------------------------</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                    <span class="s3">f&quot;&lt;code&gt;Game level    : </span><span class="s0">{</span><span class="s1">game_level</span><span class="s0">} </span><span class="s3">(</span><span class="s0">{</span><span class="s1">game_exp</span><span class="s0">}</span><span class="s3">/</span><span class="s0">{</span><span class="s1">max_exp(player)</span><span class="s0">}</span><span class="s3">)</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                    <span class="s3">f&quot;&lt;code&gt;Total quavers : </span><span class="s0">{</span><span class="s1">quavers</span><span class="s0">} </span><span class="s3">quavers</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot;</span>
+
+                    <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+                <span class="s0">else</span><span class="s1">:</span>
+                    <span class="s1">insufficient_amount_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">\n{</span><span class="s1">username</span><span class="s0">} </span><span class="s3">does not have enough quavers!</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot;</span>
+
+                    <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=insufficient_amount_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">game_duration_left = player[</span><span class="s3">&quot;game_date&quot;</span><span class="s1">] - int(time.time())</span>
+
+                <span class="s1">minutes = math.floor(game_duration_left / </span><span class="s2">60</span><span class="s1">)</span>
+                <span class="s1">seconds = game_duration_left % </span><span class="s2">60</span>
+
+                <span class="s1">game_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s3">'s game cooldown duration : </span><span class="s0">{</span><span class="s1">minutes</span><span class="s0">}</span><span class="s3">:</span><span class="s0">{</span><span class="s1">str(seconds).zfill(</span><span class="s2">2</span><span class="s1">)</span><span class="s0">}</span><span class="s3">&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=game_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">format_error_text = </span><span class="s3">f&quot;&lt;code&gt;Error: wrong dice game format</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s3">f&quot;&lt;code&gt;Format : /dice amount&lt;/code&gt;</span><span class="s0">\n</span><span class="s3">&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=format_error_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+        <span class="s0">if </span><span class="s1">is_level_up(player):</span>
+            <span class="s1">player[</span><span class="s3">&quot;game_exp&quot;</span><span class="s1">] -= max_exp(player)</span>
+            <span class="s1">player[</span><span class="s3">&quot;game_level&quot;</span><span class="s1">] += </span><span class="s2">1</span>
+            <span class="s1">player[</span><span class="s3">&quot;game_increment&quot;</span><span class="s1">] += </span><span class="s2">0.5</span>
+
+            <span class="s1">game_level = player[</span><span class="s3">&quot;game_level&quot;</span><span class="s1">]</span>
+            <span class="s1">game_increment = player[</span><span class="s3">&quot;game_increment&quot;</span><span class="s1">]</span>
+
+            <span class="s1">level_up_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s3">'s game summary</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Game level increased to level </span><span class="s0">{</span><span class="s1">game_level</span><span class="s0">}\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s3">f&quot;&lt;code&gt;Game multiplier is now </span><span class="s0">{</span><span class="s1">game_increment</span><span class="s0">}</span><span class="s3">&lt;/code&gt;&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=level_up_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s1">players[chat_id] = player</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s3">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s3">has no permission to play games</span><span class="s0">\n</span><span class="s3">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s3">&quot;HTML&quot;</span><span class="s1">)</span>
+
+    <span class="s1">update_json(</span><span class="s3">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s1">players)</span>
+</pre>
+</body>
+</html>

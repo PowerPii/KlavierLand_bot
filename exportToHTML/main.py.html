@@ -1,0 +1,169 @@
+<html>
+<head>
+<title>main.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">bank</span>
+<span class="s0">import </span><span class="s1">credentials </span><span class="s0">as </span><span class="s1">keys</span>
+<span class="s0">import </span><span class="s1">datetime</span>
+<span class="s0">import </span><span class="s1">games</span>
+<span class="s0">import </span><span class="s1">json</span>
+<span class="s0">import </span><span class="s1">practice</span>
+<span class="s0">import </span><span class="s1">performance</span>
+<span class="s0">import </span><span class="s1">time</span>
+
+<span class="s0">from </span><span class="s1">telegram.ext </span><span class="s0">import </span><span class="s1">*</span>
+<span class="s0">from </span><span class="s1">utils </span><span class="s0">import </span><span class="s1">update_json</span>
+
+
+<span class="s0">def </span><span class="s1">register(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">players = json.load(open(</span><span class="s2">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">not in </span><span class="s1">players.keys():</span>
+        <span class="s1">player = {</span><span class="s2">&quot;username&quot;</span><span class="s1">: username</span><span class="s0">, </span><span class="s2">&quot;practice_exp&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">, </span><span class="s2">&quot;practice_level&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">, </span><span class="s2">&quot;performance_exp&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">,</span>
+                  <span class="s2">&quot;performance_level&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">, </span><span class="s2">&quot;game_exp&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">, </span><span class="s2">&quot;game_level&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">, </span><span class="s2">&quot;quavers&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">, </span><span class="s2">&quot;performance_increment&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">,</span>
+                  <span class="s2">&quot;game_increment&quot;</span><span class="s1">: </span><span class="s3">1.0</span><span class="s0">, </span><span class="s2">&quot;performance_date&quot;</span><span class="s1">: int(time.time())</span><span class="s0">, </span><span class="s2">&quot;practice_date&quot;</span><span class="s1">: int(time.time())</span><span class="s0">,</span>
+                  <span class="s2">&quot;game_date&quot;</span><span class="s1">: int(time.time())</span><span class="s0">, </span><span class="s2">&quot;is_performing&quot;</span><span class="s1">: </span><span class="s0">False</span><span class="s1">}</span>
+
+        <span class="s1">players[chat_id] = player</span>
+
+        <span class="s1">new_member_text = </span><span class="s2">f&quot;&lt;code&gt;Welcome </span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">to Klavier Land!</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                          <span class="s2">&quot;&lt;code&gt;Please enjoy your stay here!&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=new_member_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">registered_text = </span><span class="s2">f&quot;&lt;code&gt;Error: </span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is already in the database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=registered_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s1">update_json(</span><span class="s2">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s1">players)</span>
+
+
+<span class="s0">def </span><span class="s1">help(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+
+    <span class="s1">help_text = </span><span class="s2">&quot;&lt;code&gt;Basic Command</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/register : Compulsory command to register yourself into the community</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/help     : Check for all available commands</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/stats    : Display your current statistics</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;Performance Command</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/perform  : Perform to earn quavers, the currency in Klavier Land</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/collect  : Collect your quavers from performance</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/donate   : Donate your quavers to other member in the community</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;            /donate @member amount</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;Game Command</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/dice     : Roll dice against the bot</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;            /dice amount</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;Bank Command</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/open     : Open bank account</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/account  : Check account status</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/stock    : Check stock account status</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/deposit  : Deposit quavers into your account</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;            /deposit amount</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/withdraw : Withdraw quavers out your account</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;            /withdraw amount</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/transfer : Transfer quavers to other recipients</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;            /donate @recipients amount</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/market   : Check current stocks price</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/invest   : Invest your quavers to buy stocks</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;            /invest amount</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;/sell     : Sell your stocks</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                <span class="s2">&quot;&lt;code&gt;            /sell amount</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+    <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=help_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+
+<span class="s0">def </span><span class="s1">stats(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">players = json.load(open(</span><span class="s2">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">players.keys():</span>
+        <span class="s1">player = players[chat_id]</span>
+
+        <span class="s1">practice_exp = player[</span><span class="s2">&quot;practice_exp&quot;</span><span class="s1">]</span>
+        <span class="s1">practice_level = player[</span><span class="s2">&quot;practice_level&quot;</span><span class="s1">]</span>
+        <span class="s1">performance_exp = player[</span><span class="s2">&quot;performance_exp&quot;</span><span class="s1">]</span>
+        <span class="s1">performance_level = player[</span><span class="s2">&quot;performance_level&quot;</span><span class="s1">]</span>
+        <span class="s1">game_exp = player[</span><span class="s2">&quot;game_exp&quot;</span><span class="s1">]</span>
+        <span class="s1">game_level = player[</span><span class="s2">&quot;game_level&quot;</span><span class="s1">]</span>
+        <span class="s1">quavers = player[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]</span>
+
+        <span class="s1">stats_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s statistics</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                     <span class="s2">f&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                     <span class="s2">f&quot;&lt;code&gt;Practice level    : </span><span class="s0">{</span><span class="s1">practice_level</span><span class="s0">} </span><span class="s2">&quot; </span><span class="s1">\</span>
+                     <span class="s2">f&quot;(</span><span class="s0">{</span><span class="s1">int(practice_exp)</span><span class="s0">}</span><span class="s2">/</span><span class="s0">{</span><span class="s1">practice.max_exp(player)</span><span class="s0">}</span><span class="s2">)</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                     <span class="s2">f&quot;&lt;code&gt;Performance level : </span><span class="s0">{</span><span class="s1">performance_level</span><span class="s0">} </span><span class="s2">&quot; </span><span class="s1">\</span>
+                     <span class="s2">f&quot;(</span><span class="s0">{</span><span class="s1">performance_exp</span><span class="s0">}</span><span class="s2">/</span><span class="s0">{</span><span class="s1">performance.max_exp(player)</span><span class="s0">}</span><span class="s2">)</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                     <span class="s2">f&quot;&lt;code&gt;Game level        : </span><span class="s0">{</span><span class="s1">game_level</span><span class="s0">} </span><span class="s2">(</span><span class="s0">{</span><span class="s1">game_exp</span><span class="s0">}</span><span class="s2">/</span><span class="s0">{</span><span class="s1">games.max_exp(player)</span><span class="s0">}</span><span class="s2">)</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                     <span class="s2">f&quot;&lt;code&gt;Total quavers     : </span><span class="s0">{</span><span class="s1">quavers</span><span class="s0">} </span><span class="s2">quavers&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=stats_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+
+<span class="s0">def </span><span class="s1">error(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">print(</span><span class="s2">f&quot;Update </span><span class="s0">{</span><span class="s1">update</span><span class="s0">} </span><span class="s2">caused error</span><span class="s0">\n{</span><span class="s1">context.error</span><span class="s0">}</span><span class="s2">.&quot;</span><span class="s1">)</span>
+
+
+<span class="s0">def </span><span class="s1">main():</span>
+    <span class="s1">updater = Updater(keys.API_KEY</span><span class="s0">, </span><span class="s1">use_context=</span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">dp = updater.dispatcher</span>
+
+    <span class="s1">jq = updater.job_queue</span>
+    <span class="s1">jq.run_daily(bank.give_interest</span><span class="s0">, </span><span class="s1">time=datetime.time(hour=</span><span class="s3">16</span><span class="s0">, </span><span class="s1">minute=</span><span class="s3">00</span><span class="s0">, </span><span class="s1">second=</span><span class="s3">00</span><span class="s1">)</span><span class="s0">, </span><span class="s1">days=(</span><span class="s3">0</span><span class="s0">, </span><span class="s3">1</span><span class="s0">, </span><span class="s3">2</span><span class="s0">, </span><span class="s3">3</span><span class="s0">, </span><span class="s3">4</span><span class="s0">, </span><span class="s3">5</span><span class="s0">, </span><span class="s3">6</span><span class="s1">))</span>
+
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;register&quot;</span><span class="s0">, </span><span class="s1">register))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;help&quot;</span><span class="s0">, </span><span class="s1">help))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;stats&quot;</span><span class="s0">, </span><span class="s1">stats))</span>
+    <span class="s1">dp.add_error_handler(error)</span>
+
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;perform&quot;</span><span class="s0">, </span><span class="s1">performance.perform))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;collect&quot;</span><span class="s0">, </span><span class="s1">performance.collect))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;donate&quot;</span><span class="s0">, </span><span class="s1">performance.donate))</span>
+
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;open&quot;</span><span class="s0">, </span><span class="s1">bank.open_account))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;account&quot;</span><span class="s0">, </span><span class="s1">bank.account_summary))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;stock&quot;</span><span class="s0">, </span><span class="s1">bank.stock_summary))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;deposit&quot;</span><span class="s0">, </span><span class="s1">bank.deposit))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;withdraw&quot;</span><span class="s0">, </span><span class="s1">bank.withdraw))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;transfer&quot;</span><span class="s0">, </span><span class="s1">bank.transfer))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;market&quot;</span><span class="s0">, </span><span class="s1">bank.market))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;invest&quot;</span><span class="s0">, </span><span class="s1">bank.invest))</span>
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;sell&quot;</span><span class="s0">, </span><span class="s1">bank.sell))</span>
+
+    <span class="s1">dp.add_handler(CommandHandler(</span><span class="s2">&quot;dice&quot;</span><span class="s0">, </span><span class="s1">games.dice))</span>
+
+    <span class="s1">dp.add_handler(MessageHandler(Filters.text</span><span class="s0">, </span><span class="s1">practice.practice))</span>
+
+    <span class="s1">updater.start_polling()</span>
+    <span class="s1">jq.start()</span>
+    <span class="s1">updater.idle()</span>
+
+
+<span class="s0">if </span><span class="s1">__name__ == </span><span class="s2">&quot;__main__&quot;</span><span class="s1">:</span>
+    <span class="s1">print(</span><span class="s2">&quot;Bot started...&quot;</span><span class="s1">)</span>
+
+    <span class="s1">main()</span>
+</pre>
+</body>
+</html>

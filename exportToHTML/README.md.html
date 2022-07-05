@@ -1,0 +1,147 @@
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #a9b7c6;}
+.s3 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+README.md</font>
+</center></td></tr></table>
+<pre><span class="s0"># </span><span class="s2">ftfy</span><span class="s1">: </span><span class="s2">fixes text for you</span>
+
+<span class="s1">[![</span><span class="s2">PyPI package</span><span class="s1">](https://badge.fury.io/py/ftfy.svg)](https://badge.fury.io/py/ftfy)</span>
+<span class="s1">[![</span><span class="s2">Docs</span><span class="s1">](https://readthedocs.org/projects/ftfy/badge/?version=latest)](https://ftfy.readthedocs.org/en/latest/)</span>
+
+<span class="s3">```python</span>
+<span class="s3">&gt;&gt;&gt; print(fix_encoding(&quot;(à¸‡'âŒ£')à¸‡&quot;))</span>
+<span class="s3">(ง'⌣')ง</span>
+<span class="s3">```</span>
+
+<span class="s2">The full documentation of ftfy is available at </span><span class="s1">[</span><span class="s2">ftfy.readthedocs.org</span><span class="s1">](https://ftfy.readthedocs.org)</span><span class="s2">. The documentation covers a lot more than this README, so here are</span>
+<span class="s2">some links into it</span><span class="s1">:</span>
+
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Fixing problems and getting explanations</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/explain.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Configuring ftfy</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/config.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Encodings ftfy can handle</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/encodings.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">“Fixer” functions</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/fixes.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Is ftfy an encoding detector?</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/detect.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Heuristics for detecting mojibake</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/heuristic.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Support for “bad” encodings</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/bad_encodings.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Command-line usage</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/cli.html)</span>
+<span class="s0">- </span><span class="s1">[</span><span class="s2">Citing ftfy</span><span class="s1">](https://ftfy.readthedocs.io/en/latest/cite.html)</span>
+
+<span class="s0">## </span><span class="s2">Testimonials</span>
+
+<span class="s0">- </span><span class="s2">“My life is livable again</span><span class="s1">!</span><span class="s2">”</span>
+  <span class="s2">— </span><span class="s1">[</span><span class="s2">@planarrowspace</span><span class="s1">](https://twitter.com/planarrowspace)</span>
+<span class="s0">- </span><span class="s2">“A handy piece of magic”</span>
+  <span class="s2">— </span><span class="s1">[</span><span class="s2">@simonw</span><span class="s1">](https://twitter.com/simonw)</span>
+<span class="s0">- </span><span class="s2">“Saved me a large amount of frustrating dev work”</span>
+  <span class="s2">— </span><span class="s1">[</span><span class="s2">@iancal</span><span class="s1">](https://twitter.com/iancal)</span>
+<span class="s0">- </span><span class="s2">“ftfy did the right thing right away, with no faffing about. Excellent work, solving a very tricky real-world </span><span class="s1">(</span><span class="s2">whole-world</span><span class="s1">!) </span><span class="s2">problem.”</span>
+  <span class="s2">— Brennan Young</span>
+<span class="s0">- </span><span class="s2">“I have no idea when I’m gonna need this, but I’m definitely bookmarking it.”</span>
+  <span class="s2">— </span><span class="s1">[</span><span class="s2">/u/ocrow</span><span class="s1">](https://reddit.com/u/ocrow)</span>
+<span class="s0">- </span><span class="s2">“9.2/10”</span>
+  <span class="s2">— </span><span class="s1">[</span><span class="s2">pylint</span><span class="s1">](https://bitbucket.org/logilab/pylint/)</span>
+
+<span class="s0">## </span><span class="s2">What it does</span>
+
+<span class="s2">Here are some examples </span><span class="s1">(</span><span class="s2">found in the real world</span><span class="s1">) </span><span class="s2">of what ftfy can do</span><span class="s1">:</span>
+
+<span class="s2">ftfy can fix mojibake </span><span class="s1">(</span><span class="s2">encoding mix-ups</span><span class="s1">)</span><span class="s2">, by detecting patterns of characters that were clearly meant to be UTF-8 but were decoded as something else</span><span class="s1">:</span>
+
+    <span class="s3">&gt;&gt;&gt; import ftfy</span>
+    <span class="s3">&gt;&gt;&gt; ftfy.fix_text('âœ” No problems')</span>
+    <span class="s3">'✔ No problems'</span>
+
+<span class="s2">Does this sound impossible? It's really not. UTF-8 is a well-designed encoding that makes it obvious when it's being misused, and a string of mojibake usually contains all the information we need to recover the original string.</span>
+
+<span class="s2">ftfy can fix multiple layers of mojibake simultaneously</span><span class="s1">:</span>
+
+    <span class="s3">&gt;&gt;&gt; ftfy.fix_text('The Mona Lisa doesnÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t have eyebrows.')</span>
+    <span class="s3">&quot;The Mona Lisa doesn't have eyebrows.&quot;</span>
+
+<span class="s2">It can fix mojibake that has had </span><span class="s1">&quot;</span><span class="s2">curly quotes</span><span class="s1">&quot; </span><span class="s2">applied on top of it, which cannot be consistently decoded until the quotes are uncurled</span><span class="s1">:</span>
+
+    <span class="s3">&gt;&gt;&gt; ftfy.fix_text(&quot;l’humanitÃ©&quot;)</span>
+    <span class="s3">&quot;l'humanité&quot;</span>
+
+<span class="s2">ftfy can fix mojibake that would have included the character U+A0 </span><span class="s1">(</span><span class="s2">non-breaking space</span><span class="s1">)</span><span class="s2">, but the U+A0 was turned into an ASCII space and then combined with another following space</span><span class="s1">:</span>
+
+    <span class="s3">&gt;&gt;&gt; ftfy.fix_text('Ã\xa0 perturber la rÃ©flexion')</span>
+    <span class="s3">'à perturber la réflexion'</span>
+    <span class="s3">&gt;&gt;&gt; ftfy.fix_text('Ã perturber la rÃ©flexion')</span>
+    <span class="s3">'à perturber la réflexion'</span>
+
+<span class="s2">ftfy can also decode HTML entities that appear outside of HTML, even in cases where the entity has been incorrectly capitalized</span><span class="s1">:</span>
+
+    <span class="s3">&gt;&gt;&gt; # by the HTML 5 standard, only 'P&amp;Eacute;REZ' is acceptable</span>
+    <span class="s3">&gt;&gt;&gt; ftfy.fix_text('P&amp;EACUTE;REZ')</span>
+    <span class="s3">'PÉREZ'</span>
+  
+<span class="s2">These fixes are not applied in all cases, because ftfy has a strongly-held goal of avoiding false positives -- it should never change correctly-decoded text to something else.</span>
+
+<span class="s2">The following text could be encoded in Windows-1252 and decoded in UTF-8, and it would decode as </span><span class="s1">'</span><span class="s2">MARQUɅ'. However, the original text is already sensible, so it is unchanged.</span>
+
+    <span class="s3">&gt;&gt;&gt; ftfy.fix_text('IL Y MARQUÉ…')</span>
+    <span class="s3">'IL Y MARQUÉ…'</span>
+
+<span class="s0">## </span><span class="s2">Installing</span>
+
+<span class="s2">ftfy is a Python 3 package that can be installed using </span><span class="s3">`</span><span class="s2">pip</span><span class="s3">`</span><span class="s1">:</span>
+
+    <span class="s3">pip install ftfy</span>
+
+<span class="s1">(</span><span class="s2">Or use </span><span class="s3">`</span><span class="s2">pip3 install ftfy</span><span class="s3">` </span><span class="s2">on systems where Python 2 and 3 are both globally</span>
+<span class="s2">installed and </span><span class="s3">`</span><span class="s2">pip</span><span class="s3">` </span><span class="s2">refers to Python 2.</span><span class="s1">)</span>
+
+<span class="s0">### </span><span class="s2">Local development</span>
+
+<span class="s2">ftfy is developed using </span><span class="s3">`</span><span class="s2">poetry</span><span class="s3">`</span><span class="s2">. Its </span><span class="s3">`</span><span class="s2">setup.py</span><span class="s3">` </span><span class="s2">is vestigial and is not the</span>
+<span class="s2">recommended way to install it.</span>
+
+<span class="s1">[</span><span class="s2">Install Poetry</span><span class="s1">](https://python-poetry.org/docs/master/#installing-with-the-official-installer)</span><span class="s2">, check out this repository, and run </span><span class="s3">`</span><span class="s2">poetry install</span><span class="s3">` </span><span class="s2">to install ftfy for local development, such as experimenting with the heuristic or running tests.</span>
+
+<span class="s0">## </span><span class="s2">Who maintains ftfy?</span>
+
+<span class="s2">I'm Robyn Speer, also known as Elia Robyn Lake. You can find me</span>
+<span class="s1">[</span><span class="s2">on GitHub</span><span class="s1">](https://github.com/rspeer) </span><span class="s2">or </span><span class="s1">[</span><span class="s2">Twitter</span><span class="s1">](https://twitter.com/r_speer)</span><span class="s2">.</span>
+
+<span class="s0">## </span><span class="s2">Citing ftfy</span>
+
+<span class="s2">ftfy has been used as a crucial data processing step in major NLP research.</span>
+
+<span class="s2">It's important to give credit appropriately to everyone whose work you build on</span>
+<span class="s2">in research. This includes software, not just high-status contributions such as</span>
+<span class="s2">mathematical models. All I ask when you use ftfy for research is that you cite</span>
+<span class="s2">it.</span>
+
+<span class="s2">ftfy has a citable record </span><span class="s1">[</span><span class="s2">on Zenodo</span><span class="s1">](https://zenodo.org/record/2591652)</span><span class="s2">.</span>
+<span class="s2">A citation of ftfy may look like this</span><span class="s1">:</span>
+
+    <span class="s3">Robyn Speer. (2019). ftfy (Version 5.5). Zenodo.</span>
+    <span class="s3">http://doi.org/10.5281/zenodo.2591652</span>
+
+<span class="s2">In BibTeX format, the citation is</span><span class="s1">::</span>
+
+    <span class="s3">@misc{speer-2019-ftfy,</span>
+      <span class="s3">author       = {Robyn Speer},</span>
+      <span class="s3">title        = {ftfy},</span>
+      <span class="s3">note         = {Version 5.5},</span>
+      <span class="s3">year         = 2019,</span>
+      <span class="s3">howpublished = {Zenodo},</span>
+      <span class="s3">doi          = {10.5281/zenodo.2591652},</span>
+      <span class="s3">url          = {https://doi.org/10.5281/zenodo.2591652}</span>
+    <span class="s3">}</span>
+</pre>
+</body>
+</html>

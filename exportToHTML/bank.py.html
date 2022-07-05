@@ -1,0 +1,463 @@
+<html>
+<head>
+<title>bank.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+bank.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">json</span>
+
+<span class="s0">from </span><span class="s1">utils </span><span class="s0">import </span><span class="s1">get_crypto_price</span><span class="s0">, </span><span class="s1">get_key_from_attribute</span><span class="s0">, </span><span class="s1">get_stock_value</span><span class="s0">, </span><span class="s1">update_json</span>
+
+
+<span class="s0">def </span><span class="s1">open_account(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">not in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = {</span><span class="s2">&quot;username&quot;</span><span class="s1">: username</span><span class="s0">,</span>
+                     <span class="s2">&quot;quavers&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">,</span>
+                     <span class="s2">&quot;stocks&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">,</span>
+                     <span class="s2">&quot;total_buy&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">,</span>
+                     <span class="s2">&quot;total_sell&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">,</span>
+                     <span class="s2">&quot;buy_quantity&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s0">,</span>
+                     <span class="s2">&quot;sell_quantity&quot;</span><span class="s1">: </span><span class="s3">0</span><span class="s1">}</span>
+
+        <span class="s1">new_recipient_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s account summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                             <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                             <span class="s2">f&quot;&lt;code&gt;Account summary : opened </span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=new_recipient_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+        <span class="s1">recipients[chat_id] = recipient</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">registered_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is already in the bank database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=registered_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s1">update_json(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s1">recipients)</span>
+
+
+<span class="s0">def </span><span class="s1">account_summary(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = recipients[chat_id]</span>
+
+        <span class="s1">quavers_at_bank = recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]</span>
+        <span class="s1">stocks = recipient[</span><span class="s2">&quot;stocks&quot;</span><span class="s1">]</span>
+
+        <span class="s1">stock_value = get_stock_value(stocks)</span>
+
+        <span class="s1">account_summary_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s account summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Quavers at bank : </span><span class="s0">{</span><span class="s1">quavers_at_bank</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Stock value     : </span><span class="s0">{</span><span class="s1">stock_value</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Total assets    : </span><span class="s0">{</span><span class="s1">quavers_at_bank + stock_value</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=account_summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">registered_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is not found in the bank database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=registered_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+
+<span class="s0">def </span><span class="s1">stock_summary(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = recipients[chat_id]</span>
+
+        <span class="s1">stocks = recipient[</span><span class="s2">&quot;stocks&quot;</span><span class="s1">]</span>
+        <span class="s1">total_buy = recipient[</span><span class="s2">&quot;total_buy&quot;</span><span class="s1">]</span>
+        <span class="s1">buy_quantity = recipient[</span><span class="s2">&quot;buy_quantity&quot;</span><span class="s1">]</span>
+        <span class="s1">total_sell = recipient[</span><span class="s2">&quot;total_sell&quot;</span><span class="s1">]</span>
+        <span class="s1">sell_quantity = recipient[</span><span class="s2">&quot;sell_quantity&quot;</span><span class="s1">]</span>
+        <span class="s1">stock_value = get_stock_value(stocks)</span>
+        <span class="s1">stock_price = get_crypto_price()</span>
+
+        <span class="s1">average_buy = </span><span class="s3">0</span>
+        <span class="s1">average_sale = </span><span class="s3">0</span>
+
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">average_buy = total_buy/buy_quantity</span>
+            <span class="s1">average_sale = total_sell/sell_quantity</span>
+        <span class="s0">except </span><span class="s1">ZeroDivisionError:</span>
+            <span class="s0">pass</span>
+
+        <span class="s1">r_pnl = (average_sale-average_buy)*sell_quantity</span>
+        <span class="s1">ur_pnl = (stock_price-average_buy)*stocks</span>
+
+        <span class="s1">account_summary_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s stock summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Stock amount   : </span><span class="s0">{</span><span class="s1">stocks</span><span class="s0">} </span><span class="s2">unit(s)</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Stock value    : </span><span class="s0">{</span><span class="s1">stock_value</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Realised PNL   : </span><span class="s0">{</span><span class="s1">int(r_pnl)</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Unrealised PNL : </span><span class="s0">{</span><span class="s1">int(ur_pnl)</span><span class="s0">} </span><span class="s2">quavers&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=account_summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">registered_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is not found in the bank database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=registered_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+
+<span class="s0">def </span><span class="s1">deposit(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+    <span class="s1">players = json.load(open(</span><span class="s2">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+    <span class="s1">text = update.message.text.split(</span><span class="s2">&quot; &quot;</span><span class="s1">)</span>
+
+    <span class="s1">deposit_amount = </span><span class="s2">&quot;x&quot;</span>
+
+    <span class="s0">try</span><span class="s1">:</span>
+        <span class="s1">deposit_amount = int(text[</span><span class="s3">1</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">text[</span><span class="s3">1</span><span class="s1">].isnumeric() </span><span class="s0">else </span><span class="s2">&quot;x&quot;</span>
+    <span class="s0">except </span><span class="s1">IndexError:</span>
+        <span class="s0">pass</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = recipients[chat_id]</span>
+        <span class="s1">player = players[chat_id]</span>
+
+        <span class="s0">if </span><span class="s1">len(text) == </span><span class="s3">2 </span><span class="s0">and </span><span class="s1">deposit_amount != </span><span class="s2">&quot;x&quot;</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">player[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] &gt;= deposit_amount:</span>
+                <span class="s1">recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] += deposit_amount</span>
+                <span class="s1">player[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] -= deposit_amount</span>
+
+                <span class="s1">quavers_at_bank = recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]</span>
+                <span class="s1">quavers_in_hand = player[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]</span>
+
+                <span class="s1">summary_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s account summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Deposit amount    : </span><span class="s0">{</span><span class="s1">deposit_amount</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Available Balance : </span><span class="s0">{</span><span class="s1">quavers_at_bank</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Quavers in hand   : </span><span class="s0">{</span><span class="s1">quavers_in_hand</span><span class="s0">} </span><span class="s2">quavers&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">insufficient_amount_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">\n{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">has insufficient quavers to deposit</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=insufficient_amount_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">format_error_text = </span><span class="s2">f&quot;&lt;code&gt;Error: wrong deposit format</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s2">f&quot;&lt;code&gt;Format : /deposit amount&lt;/code&gt;</span><span class="s0">\n</span><span class="s2">&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=format_error_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s1">recipients[chat_id] = recipient</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is not found in the bank database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+    <span class="s1">update_json(</span><span class="s2">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s1">players)</span>
+    <span class="s1">update_json(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s1">recipients)</span>
+
+
+<span class="s0">def </span><span class="s1">withdraw(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+    <span class="s1">players = json.load(open(</span><span class="s2">&quot;players_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+    <span class="s1">text = update.message.text.split(</span><span class="s2">&quot; &quot;</span><span class="s1">)</span>
+
+    <span class="s1">withdrawal_amount = </span><span class="s2">&quot;x&quot;</span>
+
+    <span class="s0">try</span><span class="s1">:</span>
+        <span class="s1">withdrawal_amount = int(text[</span><span class="s3">1</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">text[</span><span class="s3">1</span><span class="s1">].isnumeric() </span><span class="s0">else </span><span class="s2">&quot;x&quot;</span>
+    <span class="s0">except </span><span class="s1">IndexError:</span>
+        <span class="s0">pass</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = recipients[chat_id]</span>
+        <span class="s1">player = players[chat_id]</span>
+
+        <span class="s0">if </span><span class="s1">len(text) == </span><span class="s3">2 </span><span class="s0">and </span><span class="s1">isinstance(withdrawal_amount</span><span class="s0">, </span><span class="s1">int):</span>
+            <span class="s0">if </span><span class="s1">recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] &gt;= withdrawal_amount:</span>
+                <span class="s1">recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] -= withdrawal_amount</span>
+                <span class="s1">player[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] += withdrawal_amount</span>
+
+                <span class="s1">quavers_at_bank = recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]</span>
+                <span class="s1">quavers_in_hand = player[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]</span>
+
+                <span class="s1">summary_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s account summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Withdrawal amount : </span><span class="s0">{</span><span class="s1">withdrawal_amount</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Available Balance : </span><span class="s0">{</span><span class="s1">quavers_at_bank</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Quavers in hand   : </span><span class="s0">{</span><span class="s1">quavers_in_hand</span><span class="s0">} </span><span class="s2">quavers&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">insufficient_amount_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">\n{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">has insufficient quavers to withdraw</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=insufficient_amount_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">format_error_text = </span><span class="s2">f&quot;&lt;code&gt;Error: wrong withdrawal format</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s2">f&quot;&lt;code&gt;Format : /withdraw amount&lt;/code&gt;</span><span class="s0">\n</span><span class="s2">&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=format_error_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s1">recipients[chat_id] = recipient</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is not found in the database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+    <span class="s1">update_json(</span><span class="s2">&quot;players_data.json&quot;</span><span class="s0">, </span><span class="s1">players)</span>
+    <span class="s1">update_json(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s1">recipients)</span>
+
+
+<span class="s0">def </span><span class="s1">transfer(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+    <span class="s1">text = update.message.text.split(</span><span class="s2">&quot; &quot;</span><span class="s1">)</span>
+
+    <span class="s1">other_recipient_username</span><span class="s0">, </span><span class="s1">other_recipient_chat_id</span><span class="s0">, </span><span class="s1">transfer_amount = </span><span class="s2">&quot;x&quot;</span><span class="s0">, </span><span class="s2">&quot;x&quot;</span><span class="s0">, </span><span class="s2">&quot;x&quot;</span>
+
+    <span class="s0">try</span><span class="s1">:</span>
+        <span class="s1">other_recipient_username = text[</span><span class="s3">1</span><span class="s1">][</span><span class="s3">1</span><span class="s1">:]</span>
+        <span class="s1">transfer_amount = int(text[</span><span class="s3">2</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">text[</span><span class="s3">2</span><span class="s1">].isnumeric() </span><span class="s0">else </span><span class="s2">&quot;x&quot;</span>
+        <span class="s1">other_recipient_chat_id = get_key_from_attribute(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s2">&quot;username&quot;</span><span class="s0">, </span><span class="s1">other_recipient_username)</span>
+    <span class="s0">except </span><span class="s1">IndexError:</span>
+        <span class="s0">pass</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = recipients[chat_id]</span>
+
+        <span class="s0">if </span><span class="s1">len(text) == </span><span class="s3">3 </span><span class="s0">and </span><span class="s1">other_recipient_username != </span><span class="s2">&quot;x&quot; </span><span class="s0">and </span><span class="s1">transfer_amount != </span><span class="s2">&quot;x&quot;</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">other_recipient_chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+                <span class="s1">other_recipient = recipients[other_recipient_chat_id]</span>
+
+                <span class="s0">if </span><span class="s1">transfer_amount &lt;= recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]:</span>
+                    <span class="s1">recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] -= transfer_amount</span>
+                    <span class="s1">other_recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] += transfer_amount</span>
+
+                    <span class="s1">quavers = recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]</span>
+
+                    <span class="s1">summary_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s transfer summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s2">f&quot;&lt;code&gt;Recipient name    : </span><span class="s0">{</span><span class="s1">other_recipient_username</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s2">f&quot;&lt;code&gt;Transfer amount   : </span><span class="s0">{</span><span class="s1">transfer_amount</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                   <span class="s2">f&quot;&lt;code&gt;Available balance : </span><span class="s0">{</span><span class="s1">quavers</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+                    <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+                <span class="s0">else</span><span class="s1">:</span>
+                    <span class="s1">insufficient_text = </span><span class="s2">f&quot;&lt;code&gt;Insufficient balance in bank to transfer&lt;/code&gt;&quot;</span>
+
+                    <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=insufficient_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+                <span class="s1">recipients[other_recipient_chat_id] = other_recipient</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">no_recipient_in_list_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">other_recipient_username</span><span class="s0">} </span><span class="s2">is not in the bank database&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=no_recipient_in_list_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">format_error_text = </span><span class="s2">f&quot;&lt;code&gt;Error: wrong transfer format</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s2">f&quot;&lt;code&gt;Format : /transfer @recipient amount&lt;/code&gt;</span><span class="s0">\n</span><span class="s2">&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=format_error_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s1">recipients[chat_id] = recipient</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is not found in the bank database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s1">update_json(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s1">recipients)</span>
+
+
+<span class="s0">def </span><span class="s1">market(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">stock_price = get_crypto_price()</span>
+
+        <span class="s1">market_text = </span><span class="s2">f&quot;&lt;code&gt;Klavier stocks price</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                      <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                      <span class="s2">f&quot;&lt;code&gt;Klavier Corp. : </span><span class="s0">{</span><span class="s1">stock_price</span><span class="s0">} </span><span class="s2">quavers&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=market_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">has no permission to check stock prices&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+
+<span class="s0">def </span><span class="s1">invest(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+    <span class="s1">text = update.message.text.split(</span><span class="s2">&quot; &quot;</span><span class="s1">)</span>
+
+    <span class="s1">stock_amount = </span><span class="s2">&quot;x&quot;</span>
+
+    <span class="s0">try</span><span class="s1">:</span>
+        <span class="s1">stock_amount = int(text[</span><span class="s3">1</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">text[</span><span class="s3">1</span><span class="s1">].isnumeric() </span><span class="s0">else </span><span class="s2">&quot;x&quot;</span>
+    <span class="s0">except </span><span class="s1">IndexError:</span>
+        <span class="s0">pass</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = recipients[chat_id]</span>
+
+        <span class="s0">if </span><span class="s1">len(text) == </span><span class="s3">2 </span><span class="s0">and </span><span class="s1">isinstance(stock_amount</span><span class="s0">, </span><span class="s1">int):</span>
+            <span class="s1">stock_price = get_crypto_price()</span>
+            <span class="s1">total_amount = stock_price * stock_amount</span>
+
+            <span class="s0">if </span><span class="s1">total_amount &lt;= recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]:</span>
+                <span class="s1">recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] -= total_amount</span>
+                <span class="s1">recipient[</span><span class="s2">&quot;stocks&quot;</span><span class="s1">] += stock_amount</span>
+
+                <span class="s1">recipient[</span><span class="s2">&quot;total_buy&quot;</span><span class="s1">] += total_amount</span>
+                <span class="s1">recipient[</span><span class="s2">&quot;buy_quantity&quot;</span><span class="s1">] += stock_amount</span>
+
+                <span class="s1">summary_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s investment summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;Investment type    : buy</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Stock price        : </span><span class="s0">{</span><span class="s1">stock_price</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Stock amount       : </span><span class="s0">{</span><span class="s1">stock_amount</span><span class="s0">} </span><span class="s2">unit(s)</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Total amount       : </span><span class="s0">{</span><span class="s1">total_amount</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">insufficient_text = </span><span class="s2">f&quot;&lt;code&gt;Insufficient balance in bank to invest&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=insufficient_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">format_error_text = </span><span class="s2">f&quot;&lt;code&gt;Error: wrong invest format</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s2">f&quot;&lt;code&gt;Format : /invest amount&lt;/code&gt;</span><span class="s0">\n</span><span class="s2">&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=format_error_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s1">recipients[chat_id] = recipient</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is not found in bank database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s1">update_json(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s1">recipients)</span>
+
+
+<span class="s0">def </span><span class="s1">sell(update</span><span class="s0">, </span><span class="s1">context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s1">chat_id = str(update.message.from_user.id)</span>
+    <span class="s1">groupchat_id = update.message.chat.id</span>
+    <span class="s1">username = update.message.from_user.username</span>
+    <span class="s1">text = update.message.text.split(</span><span class="s2">&quot; &quot;</span><span class="s1">)</span>
+
+    <span class="s1">stock_amount = </span><span class="s2">&quot;x&quot;</span>
+
+    <span class="s0">try</span><span class="s1">:</span>
+        <span class="s1">stock_amount = int(text[</span><span class="s3">1</span><span class="s1">]) </span><span class="s0">if </span><span class="s1">text[</span><span class="s3">1</span><span class="s1">].isnumeric() </span><span class="s0">else </span><span class="s2">&quot;x&quot;</span>
+    <span class="s0">except </span><span class="s1">IndexError:</span>
+        <span class="s0">pass</span>
+
+    <span class="s0">if </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+        <span class="s1">recipient = recipients[chat_id]</span>
+
+        <span class="s0">if </span><span class="s1">len(text) == </span><span class="s3">2 </span><span class="s0">and </span><span class="s1">isinstance(stock_amount</span><span class="s0">, </span><span class="s1">int):</span>
+            <span class="s0">if </span><span class="s1">stock_amount &lt;= recipient[</span><span class="s2">&quot;stocks&quot;</span><span class="s1">]:</span>
+                <span class="s1">stock_price = get_crypto_price()</span>
+                <span class="s1">total_amount = stock_price * stock_amount</span>
+
+                <span class="s1">recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] += total_amount</span>
+                <span class="s1">recipient[</span><span class="s2">&quot;stocks&quot;</span><span class="s1">] -= stock_amount</span>
+
+                <span class="s1">recipient[</span><span class="s2">&quot;total_sell&quot;</span><span class="s1">] += total_amount</span>
+                <span class="s1">recipient[</span><span class="s2">&quot;sell_quantity&quot;</span><span class="s1">] += stock_amount</span>
+
+                <span class="s1">summary_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">}</span><span class="s2">'s investment summary</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;Investment type : sell</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Stock price     : </span><span class="s0">{</span><span class="s1">stock_price</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Stock amount    : </span><span class="s0">{</span><span class="s1">stock_amount</span><span class="s0">} </span><span class="s2">unit(s)</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                               <span class="s2">f&quot;&lt;code&gt;Total amount    : </span><span class="s0">{</span><span class="s1">total_amount</span><span class="s0">} </span><span class="s2">quavers</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=summary_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+
+                <span class="s0">if </span><span class="s1">recipient[</span><span class="s2">&quot;stocks&quot;</span><span class="s1">] == </span><span class="s3">0</span><span class="s1">:</span>
+                    <span class="s1">recipient[</span><span class="s2">&quot;total_buy&quot;</span><span class="s1">] = </span><span class="s3">0</span>
+                    <span class="s1">recipient[</span><span class="s2">&quot;total_sell&quot;</span><span class="s1">] = </span><span class="s3">0</span>
+                    <span class="s1">recipient[</span><span class="s2">&quot;buy_quantity&quot;</span><span class="s1">] = </span><span class="s3">0</span>
+                    <span class="s1">recipient[</span><span class="s2">&quot;sell_quantity&quot;</span><span class="s1">] = </span><span class="s3">0</span>
+
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">insufficient_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">has insufficient stocks in bank to sell&lt;/code&gt;&quot;</span>
+
+                <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=insufficient_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">format_error_text = </span><span class="s2">f&quot;&lt;code&gt;Error: wrong invest format</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                                <span class="s2">f&quot;&lt;code&gt;Format : /invest stock amount&lt;/code&gt;</span><span class="s0">\n</span><span class="s2">&quot;</span>
+
+            <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=format_error_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+        <span class="s1">recipients[chat_id] = recipient</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">unregistered_user_text = </span><span class="s2">f&quot;&lt;code&gt;</span><span class="s0">{</span><span class="s1">username</span><span class="s0">} </span><span class="s2">is not found in bank database&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=groupchat_id</span><span class="s0">, </span><span class="s1">text=unregistered_user_text</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+    <span class="s1">update_json(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s1">recipients)</span>
+
+
+<span class="s0">def </span><span class="s1">give_interest(context):</span>
+    <span class="s1">recipients = json.load(open(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s1">))</span>
+
+    <span class="s0">if </span><span class="s1">bool(recipients):</span>
+
+        <span class="s1">print(recipients.keys())</span>
+
+        <span class="s0">for </span><span class="s1">chat_id </span><span class="s0">in </span><span class="s1">recipients.keys():</span>
+            <span class="s1">recipient = recipients[chat_id]</span>
+
+            <span class="s1">interest = int(recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">]*</span><span class="s3">0.01</span><span class="s1">)</span>
+
+            <span class="s1">recipient[</span><span class="s2">&quot;quavers&quot;</span><span class="s1">] += interest</span>
+            <span class="s1">recipients[chat_id] = recipient</span>
+
+        <span class="s1">update_json(</span><span class="s2">&quot;bank_data.json&quot;</span><span class="s0">, </span><span class="s1">recipients)</span>
+
+        <span class="s1">bank_announcement = </span><span class="s2">&quot;&lt;code&gt;Klavier Bank announcement</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s2">&quot;&lt;code&gt;--------------------------------</span><span class="s0">\n</span><span class="s2">&lt;/code&gt;&quot; </span><span class="s1">\</span>
+                            <span class="s2">&quot;&lt;code&gt;Interests have been credited into your account&lt;/code&gt;&quot;</span>
+
+        <span class="s1">context.bot.send_message(chat_id=-</span><span class="s3">1001570480369</span><span class="s0">, </span><span class="s1">text=bank_announcement</span><span class="s0">, </span><span class="s1">parse_mode=</span><span class="s2">&quot;HTML&quot;</span><span class="s1">)</span>
+</pre>
+</body>
+</html>

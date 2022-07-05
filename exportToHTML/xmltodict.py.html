@@ -1,0 +1,510 @@
+<html>
+<head>
+<title>xmltodict.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #629755; font-style: italic;}
+.s3 { color: #cc7832;}
+.s4 { color: #6a8759;}
+.s5 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+xmltodict.py</font>
+</center></td></tr></table>
+<pre><span class="s0">#!/usr/bin/env python</span>
+<span class="s2">&quot;Makes working with XML feel like you are working with JSON&quot;</span>
+
+<span class="s3">try</span><span class="s1">:</span>
+    <span class="s3">from </span><span class="s1">defusedexpat </span><span class="s3">import </span><span class="s1">pyexpat </span><span class="s3">as </span><span class="s1">expat</span>
+<span class="s3">except </span><span class="s1">ImportError:</span>
+    <span class="s3">from </span><span class="s1">xml.parsers </span><span class="s3">import </span><span class="s1">expat</span>
+<span class="s3">from </span><span class="s1">xml.sax.saxutils </span><span class="s3">import </span><span class="s1">XMLGenerator</span>
+<span class="s3">from </span><span class="s1">xml.sax.xmlreader </span><span class="s3">import </span><span class="s1">AttributesImpl</span>
+<span class="s3">try</span><span class="s1">:  </span><span class="s0"># pragma no cover</span>
+    <span class="s3">from </span><span class="s1">cStringIO </span><span class="s3">import </span><span class="s1">StringIO</span>
+<span class="s3">except </span><span class="s1">ImportError:  </span><span class="s0"># pragma no cover</span>
+    <span class="s3">try</span><span class="s1">:</span>
+        <span class="s3">from </span><span class="s1">StringIO </span><span class="s3">import </span><span class="s1">StringIO</span>
+    <span class="s3">except </span><span class="s1">ImportError:</span>
+        <span class="s3">from </span><span class="s1">io </span><span class="s3">import </span><span class="s1">StringIO</span>
+
+<span class="s3">from </span><span class="s1">collections </span><span class="s3">import </span><span class="s1">OrderedDict</span>
+
+<span class="s3">try</span><span class="s1">:  </span><span class="s0"># pragma no cover</span>
+    <span class="s1">_basestring = basestring</span>
+<span class="s3">except </span><span class="s1">NameError:  </span><span class="s0"># pragma no cover</span>
+    <span class="s1">_basestring = str</span>
+<span class="s3">try</span><span class="s1">:  </span><span class="s0"># pragma no cover</span>
+    <span class="s1">_unicode = unicode</span>
+<span class="s3">except </span><span class="s1">NameError:  </span><span class="s0"># pragma no cover</span>
+    <span class="s1">_unicode = str</span>
+
+<span class="s1">__author__ = </span><span class="s4">'Martin Blech'</span>
+<span class="s1">__version__ = </span><span class="s4">'0.12.0'</span>
+<span class="s1">__license__ = </span><span class="s4">'MIT'</span>
+
+
+<span class="s3">class </span><span class="s1">ParsingInterrupted(Exception):</span>
+    <span class="s3">pass</span>
+
+
+<span class="s3">class </span><span class="s1">_DictSAXHandler(object):</span>
+    <span class="s3">def </span><span class="s1">__init__(self</span><span class="s3">,</span>
+                 <span class="s1">item_depth=</span><span class="s5">0</span><span class="s3">,</span>
+                 <span class="s1">item_callback=</span><span class="s3">lambda </span><span class="s1">*args: </span><span class="s3">True,</span>
+                 <span class="s1">xml_attribs=</span><span class="s3">True,</span>
+                 <span class="s1">attr_prefix=</span><span class="s4">'@'</span><span class="s3">,</span>
+                 <span class="s1">cdata_key=</span><span class="s4">'#text'</span><span class="s3">,</span>
+                 <span class="s1">force_cdata=</span><span class="s3">False,</span>
+                 <span class="s1">cdata_separator=</span><span class="s4">''</span><span class="s3">,</span>
+                 <span class="s1">postprocessor=</span><span class="s3">None,</span>
+                 <span class="s1">dict_constructor=OrderedDict</span><span class="s3">,</span>
+                 <span class="s1">strip_whitespace=</span><span class="s3">True,</span>
+                 <span class="s1">namespace_separator=</span><span class="s4">':'</span><span class="s3">,</span>
+                 <span class="s1">namespaces=</span><span class="s3">None,</span>
+                 <span class="s1">force_list=</span><span class="s3">None</span><span class="s1">):</span>
+        <span class="s1">self.path = []</span>
+        <span class="s1">self.stack = []</span>
+        <span class="s1">self.data = []</span>
+        <span class="s1">self.item = </span><span class="s3">None</span>
+        <span class="s1">self.item_depth = item_depth</span>
+        <span class="s1">self.xml_attribs = xml_attribs</span>
+        <span class="s1">self.item_callback = item_callback</span>
+        <span class="s1">self.attr_prefix = attr_prefix</span>
+        <span class="s1">self.cdata_key = cdata_key</span>
+        <span class="s1">self.force_cdata = force_cdata</span>
+        <span class="s1">self.cdata_separator = cdata_separator</span>
+        <span class="s1">self.postprocessor = postprocessor</span>
+        <span class="s1">self.dict_constructor = dict_constructor</span>
+        <span class="s1">self.strip_whitespace = strip_whitespace</span>
+        <span class="s1">self.namespace_separator = namespace_separator</span>
+        <span class="s1">self.namespaces = namespaces</span>
+        <span class="s1">self.namespace_declarations = OrderedDict()</span>
+        <span class="s1">self.force_list = force_list</span>
+
+    <span class="s3">def </span><span class="s1">_build_name(self</span><span class="s3">, </span><span class="s1">full_name):</span>
+        <span class="s3">if not </span><span class="s1">self.namespaces:</span>
+            <span class="s3">return </span><span class="s1">full_name</span>
+        <span class="s1">i = full_name.rfind(self.namespace_separator)</span>
+        <span class="s3">if </span><span class="s1">i == -</span><span class="s5">1</span><span class="s1">:</span>
+            <span class="s3">return </span><span class="s1">full_name</span>
+        <span class="s1">namespace</span><span class="s3">, </span><span class="s1">name = full_name[:i]</span><span class="s3">, </span><span class="s1">full_name[i+</span><span class="s5">1</span><span class="s1">:]</span>
+        <span class="s1">short_namespace = self.namespaces.get(namespace</span><span class="s3">, </span><span class="s1">namespace)</span>
+        <span class="s3">if not </span><span class="s1">short_namespace:</span>
+            <span class="s3">return </span><span class="s1">name</span>
+        <span class="s3">else</span><span class="s1">:</span>
+            <span class="s3">return </span><span class="s1">self.namespace_separator.join((short_namespace</span><span class="s3">, </span><span class="s1">name))</span>
+
+    <span class="s3">def </span><span class="s1">_attrs_to_dict(self</span><span class="s3">, </span><span class="s1">attrs):</span>
+        <span class="s3">if </span><span class="s1">isinstance(attrs</span><span class="s3">, </span><span class="s1">dict):</span>
+            <span class="s3">return </span><span class="s1">attrs</span>
+        <span class="s3">return </span><span class="s1">self.dict_constructor(zip(attrs[</span><span class="s5">0</span><span class="s1">::</span><span class="s5">2</span><span class="s1">]</span><span class="s3">, </span><span class="s1">attrs[</span><span class="s5">1</span><span class="s1">::</span><span class="s5">2</span><span class="s1">]))</span>
+
+    <span class="s3">def </span><span class="s1">startNamespaceDecl(self</span><span class="s3">, </span><span class="s1">prefix</span><span class="s3">, </span><span class="s1">uri):</span>
+        <span class="s1">self.namespace_declarations[prefix </span><span class="s3">or </span><span class="s4">''</span><span class="s1">] = uri</span>
+
+    <span class="s3">def </span><span class="s1">startElement(self</span><span class="s3">, </span><span class="s1">full_name</span><span class="s3">, </span><span class="s1">attrs):</span>
+        <span class="s1">name = self._build_name(full_name)</span>
+        <span class="s1">attrs = self._attrs_to_dict(attrs)</span>
+        <span class="s3">if </span><span class="s1">attrs </span><span class="s3">and </span><span class="s1">self.namespace_declarations:</span>
+            <span class="s1">attrs[</span><span class="s4">'xmlns'</span><span class="s1">] = self.namespace_declarations</span>
+            <span class="s1">self.namespace_declarations = OrderedDict()</span>
+        <span class="s1">self.path.append((name</span><span class="s3">, </span><span class="s1">attrs </span><span class="s3">or None</span><span class="s1">))</span>
+        <span class="s3">if </span><span class="s1">len(self.path) &gt; self.item_depth:</span>
+            <span class="s1">self.stack.append((self.item</span><span class="s3">, </span><span class="s1">self.data))</span>
+            <span class="s3">if </span><span class="s1">self.xml_attribs:</span>
+                <span class="s1">attr_entries = []</span>
+                <span class="s3">for </span><span class="s1">key</span><span class="s3">, </span><span class="s1">value </span><span class="s3">in </span><span class="s1">attrs.items():</span>
+                    <span class="s1">key = self.attr_prefix+self._build_name(key)</span>
+                    <span class="s3">if </span><span class="s1">self.postprocessor:</span>
+                        <span class="s1">entry = self.postprocessor(self.path</span><span class="s3">, </span><span class="s1">key</span><span class="s3">, </span><span class="s1">value)</span>
+                    <span class="s3">else</span><span class="s1">:</span>
+                        <span class="s1">entry = (key</span><span class="s3">, </span><span class="s1">value)</span>
+                    <span class="s3">if </span><span class="s1">entry:</span>
+                        <span class="s1">attr_entries.append(entry)</span>
+                <span class="s1">attrs = self.dict_constructor(attr_entries)</span>
+            <span class="s3">else</span><span class="s1">:</span>
+                <span class="s1">attrs = </span><span class="s3">None</span>
+            <span class="s1">self.item = attrs </span><span class="s3">or None</span>
+            <span class="s1">self.data = []</span>
+
+    <span class="s3">def </span><span class="s1">endElement(self</span><span class="s3">, </span><span class="s1">full_name):</span>
+        <span class="s1">name = self._build_name(full_name)</span>
+        <span class="s3">if </span><span class="s1">len(self.path) == self.item_depth:</span>
+            <span class="s1">item = self.item</span>
+            <span class="s3">if </span><span class="s1">item </span><span class="s3">is None</span><span class="s1">:</span>
+                <span class="s1">item = (</span><span class="s3">None if not </span><span class="s1">self.data</span>
+                        <span class="s3">else </span><span class="s1">self.cdata_separator.join(self.data))</span>
+
+            <span class="s1">should_continue = self.item_callback(self.path</span><span class="s3">, </span><span class="s1">item)</span>
+            <span class="s3">if not </span><span class="s1">should_continue:</span>
+                <span class="s3">raise </span><span class="s1">ParsingInterrupted()</span>
+        <span class="s3">if </span><span class="s1">len(self.stack):</span>
+            <span class="s1">data = (</span><span class="s3">None if not </span><span class="s1">self.data</span>
+                    <span class="s3">else </span><span class="s1">self.cdata_separator.join(self.data))</span>
+            <span class="s1">item = self.item</span>
+            <span class="s1">self.item</span><span class="s3">, </span><span class="s1">self.data = self.stack.pop()</span>
+            <span class="s3">if </span><span class="s1">self.strip_whitespace </span><span class="s3">and </span><span class="s1">data:</span>
+                <span class="s1">data = data.strip() </span><span class="s3">or None</span>
+            <span class="s3">if </span><span class="s1">data </span><span class="s3">and </span><span class="s1">self.force_cdata </span><span class="s3">and </span><span class="s1">item </span><span class="s3">is None</span><span class="s1">:</span>
+                <span class="s1">item = self.dict_constructor()</span>
+            <span class="s3">if </span><span class="s1">item </span><span class="s3">is not None</span><span class="s1">:</span>
+                <span class="s3">if </span><span class="s1">data:</span>
+                    <span class="s1">self.push_data(item</span><span class="s3">, </span><span class="s1">self.cdata_key</span><span class="s3">, </span><span class="s1">data)</span>
+                <span class="s1">self.item = self.push_data(self.item</span><span class="s3">, </span><span class="s1">name</span><span class="s3">, </span><span class="s1">item)</span>
+            <span class="s3">else</span><span class="s1">:</span>
+                <span class="s1">self.item = self.push_data(self.item</span><span class="s3">, </span><span class="s1">name</span><span class="s3">, </span><span class="s1">data)</span>
+        <span class="s3">else</span><span class="s1">:</span>
+            <span class="s1">self.item = </span><span class="s3">None</span>
+            <span class="s1">self.data = []</span>
+        <span class="s1">self.path.pop()</span>
+
+    <span class="s3">def </span><span class="s1">characters(self</span><span class="s3">, </span><span class="s1">data):</span>
+        <span class="s3">if not </span><span class="s1">self.data:</span>
+            <span class="s1">self.data = [data]</span>
+        <span class="s3">else</span><span class="s1">:</span>
+            <span class="s1">self.data.append(data)</span>
+
+    <span class="s3">def </span><span class="s1">push_data(self</span><span class="s3">, </span><span class="s1">item</span><span class="s3">, </span><span class="s1">key</span><span class="s3">, </span><span class="s1">data):</span>
+        <span class="s3">if </span><span class="s1">self.postprocessor </span><span class="s3">is not None</span><span class="s1">:</span>
+            <span class="s1">result = self.postprocessor(self.path</span><span class="s3">, </span><span class="s1">key</span><span class="s3">, </span><span class="s1">data)</span>
+            <span class="s3">if </span><span class="s1">result </span><span class="s3">is None</span><span class="s1">:</span>
+                <span class="s3">return </span><span class="s1">item</span>
+            <span class="s1">key</span><span class="s3">, </span><span class="s1">data = result</span>
+        <span class="s3">if </span><span class="s1">item </span><span class="s3">is None</span><span class="s1">:</span>
+            <span class="s1">item = self.dict_constructor()</span>
+        <span class="s3">try</span><span class="s1">:</span>
+            <span class="s1">value = item[key]</span>
+            <span class="s3">if </span><span class="s1">isinstance(value</span><span class="s3">, </span><span class="s1">list):</span>
+                <span class="s1">value.append(data)</span>
+            <span class="s3">else</span><span class="s1">:</span>
+                <span class="s1">item[key] = [value</span><span class="s3">, </span><span class="s1">data]</span>
+        <span class="s3">except </span><span class="s1">KeyError:</span>
+            <span class="s3">if </span><span class="s1">self._should_force_list(key</span><span class="s3">, </span><span class="s1">data):</span>
+                <span class="s1">item[key] = [data]</span>
+            <span class="s3">else</span><span class="s1">:</span>
+                <span class="s1">item[key] = data</span>
+        <span class="s3">return </span><span class="s1">item</span>
+
+    <span class="s3">def </span><span class="s1">_should_force_list(self</span><span class="s3">, </span><span class="s1">key</span><span class="s3">, </span><span class="s1">value):</span>
+        <span class="s3">if not </span><span class="s1">self.force_list:</span>
+            <span class="s3">return False</span>
+        <span class="s3">if </span><span class="s1">isinstance(self.force_list</span><span class="s3">, </span><span class="s1">bool):</span>
+            <span class="s3">return </span><span class="s1">self.force_list</span>
+        <span class="s3">try</span><span class="s1">:</span>
+            <span class="s3">return </span><span class="s1">key </span><span class="s3">in </span><span class="s1">self.force_list</span>
+        <span class="s3">except </span><span class="s1">TypeError:</span>
+            <span class="s3">return </span><span class="s1">self.force_list(self.path[:-</span><span class="s5">1</span><span class="s1">]</span><span class="s3">, </span><span class="s1">key</span><span class="s3">, </span><span class="s1">value)</span>
+
+
+<span class="s3">def </span><span class="s1">parse(xml_input</span><span class="s3">, </span><span class="s1">encoding=</span><span class="s3">None, </span><span class="s1">expat=expat</span><span class="s3">, </span><span class="s1">process_namespaces=</span><span class="s3">False,</span>
+          <span class="s1">namespace_separator=</span><span class="s4">':'</span><span class="s3">, </span><span class="s1">disable_entities=</span><span class="s3">True, </span><span class="s1">**kwargs):</span>
+    <span class="s2">&quot;&quot;&quot;Parse the given XML input and convert it into a dictionary. 
+ 
+    `xml_input` can either be a `string` or a file-like object. 
+ 
+    If `xml_attribs` is `True`, element attributes are put in the dictionary 
+    among regular child elements, using `@` as a prefix to avoid collisions. If 
+    set to `False`, they are just ignored. 
+ 
+    Simple example:: 
+ 
+        &gt;&gt;&gt; import xmltodict 
+        &gt;&gt;&gt; doc = xmltodict.parse(\&quot;\&quot;\&quot; 
+        ... &lt;a prop=&quot;x&quot;&gt; 
+        ...   &lt;b&gt;1&lt;/b&gt; 
+        ...   &lt;b&gt;2&lt;/b&gt; 
+        ... &lt;/a&gt; 
+        ... \&quot;\&quot;\&quot;) 
+        &gt;&gt;&gt; doc['a']['@prop'] 
+        u'x' 
+        &gt;&gt;&gt; doc['a']['b'] 
+        [u'1', u'2'] 
+ 
+    If `item_depth` is `0`, the function returns a dictionary for the root 
+    element (default behavior). Otherwise, it calls `item_callback` every time 
+    an item at the specified depth is found and returns `None` in the end 
+    (streaming mode). 
+ 
+    The callback function receives two parameters: the `path` from the document 
+    root to the item (name-attribs pairs), and the `item` (dict). If the 
+    callback's return value is false-ish, parsing will be stopped with the 
+    :class:`ParsingInterrupted` exception. 
+ 
+    Streaming example:: 
+ 
+        &gt;&gt;&gt; def handle(path, item): 
+        ...     print('path:%s item:%s' % (path, item)) 
+        ...     return True 
+        ... 
+        &gt;&gt;&gt; xmltodict.parse(\&quot;\&quot;\&quot; 
+        ... &lt;a prop=&quot;x&quot;&gt; 
+        ...   &lt;b&gt;1&lt;/b&gt; 
+        ...   &lt;b&gt;2&lt;/b&gt; 
+        ... &lt;/a&gt;\&quot;\&quot;\&quot;, item_depth=2, item_callback=handle) 
+        path:[(u'a', {u'prop': u'x'}), (u'b', None)] item:1 
+        path:[(u'a', {u'prop': u'x'}), (u'b', None)] item:2 
+ 
+    The optional argument `postprocessor` is a function that takes `path`, 
+    `key` and `value` as positional arguments and returns a new `(key, value)` 
+    pair where both `key` and `value` may have changed. Usage example:: 
+ 
+        &gt;&gt;&gt; def postprocessor(path, key, value): 
+        ...     try: 
+        ...         return key + ':int', int(value) 
+        ...     except (ValueError, TypeError): 
+        ...         return key, value 
+        &gt;&gt;&gt; xmltodict.parse('&lt;a&gt;&lt;b&gt;1&lt;/b&gt;&lt;b&gt;2&lt;/b&gt;&lt;b&gt;x&lt;/b&gt;&lt;/a&gt;', 
+        ...                 postprocessor=postprocessor) 
+        OrderedDict([(u'a', OrderedDict([(u'b:int', [1, 2]), (u'b', u'x')]))]) 
+ 
+    You can pass an alternate version of `expat` (such as `defusedexpat`) by 
+    using the `expat` parameter. E.g: 
+ 
+        &gt;&gt;&gt; import defusedexpat 
+        &gt;&gt;&gt; xmltodict.parse('&lt;a&gt;hello&lt;/a&gt;', expat=defusedexpat.pyexpat) 
+        OrderedDict([(u'a', u'hello')]) 
+ 
+    You can use the force_list argument to force lists to be created even 
+    when there is only a single child of a given level of hierarchy. The 
+    force_list argument is a tuple of keys. If the key for a given level 
+    of hierarchy is in the force_list argument, that level of hierarchy 
+    will have a list as a child (even if there is only one sub-element). 
+    The index_keys operation takes precendence over this. This is applied 
+    after any user-supplied postprocessor has already run. 
+ 
+        For example, given this input: 
+        &lt;servers&gt; 
+          &lt;server&gt; 
+            &lt;name&gt;host1&lt;/name&gt; 
+            &lt;os&gt;Linux&lt;/os&gt; 
+            &lt;interfaces&gt; 
+              &lt;interface&gt; 
+                &lt;name&gt;em0&lt;/name&gt; 
+                &lt;ip_address&gt;10.0.0.1&lt;/ip_address&gt; 
+              &lt;/interface&gt; 
+            &lt;/interfaces&gt; 
+          &lt;/server&gt; 
+        &lt;/servers&gt; 
+ 
+        If called with force_list=('interface',), it will produce 
+        this dictionary: 
+        {'servers': 
+          {'server': 
+            {'name': 'host1', 
+             'os': 'Linux'}, 
+             'interfaces': 
+              {'interface': 
+                [ {'name': 'em0', 'ip_address': '10.0.0.1' } ] } } } 
+ 
+        `force_list` can also be a callable that receives `path`, `key` and 
+        `value`. This is helpful in cases where the logic that decides whether 
+        a list should be forced is more complex. 
+    &quot;&quot;&quot;</span>
+    <span class="s1">handler = _DictSAXHandler(namespace_separator=namespace_separator</span><span class="s3">,</span>
+                              <span class="s1">**kwargs)</span>
+    <span class="s3">if </span><span class="s1">isinstance(xml_input</span><span class="s3">, </span><span class="s1">_unicode):</span>
+        <span class="s3">if not </span><span class="s1">encoding:</span>
+            <span class="s1">encoding = </span><span class="s4">'utf-8'</span>
+        <span class="s1">xml_input = xml_input.encode(encoding)</span>
+    <span class="s3">if not </span><span class="s1">process_namespaces:</span>
+        <span class="s1">namespace_separator = </span><span class="s3">None</span>
+    <span class="s1">parser = expat.ParserCreate(</span>
+        <span class="s1">encoding</span><span class="s3">,</span>
+        <span class="s1">namespace_separator</span>
+    <span class="s1">)</span>
+    <span class="s3">try</span><span class="s1">:</span>
+        <span class="s1">parser.ordered_attributes = </span><span class="s3">True</span>
+    <span class="s3">except </span><span class="s1">AttributeError:</span>
+        <span class="s0"># Jython's expat does not support ordered_attributes</span>
+        <span class="s3">pass</span>
+    <span class="s1">parser.StartNamespaceDeclHandler = handler.startNamespaceDecl</span>
+    <span class="s1">parser.StartElementHandler = handler.startElement</span>
+    <span class="s1">parser.EndElementHandler = handler.endElement</span>
+    <span class="s1">parser.CharacterDataHandler = handler.characters</span>
+    <span class="s1">parser.buffer_text = </span><span class="s3">True</span>
+    <span class="s3">if </span><span class="s1">disable_entities:</span>
+        <span class="s3">try</span><span class="s1">:</span>
+            <span class="s0"># Attempt to disable DTD in Jython's expat parser (Xerces-J).</span>
+            <span class="s1">feature = </span><span class="s4">&quot;http://apache.org/xml/features/disallow-doctype-decl&quot;</span>
+            <span class="s1">parser._reader.setFeature(feature</span><span class="s3">, True</span><span class="s1">)</span>
+        <span class="s3">except </span><span class="s1">AttributeError:</span>
+            <span class="s0"># For CPython / expat parser.</span>
+            <span class="s0"># Anything not handled ends up here and entities aren't expanded.</span>
+            <span class="s1">parser.DefaultHandler = </span><span class="s3">lambda </span><span class="s1">x: </span><span class="s3">None</span>
+            <span class="s0"># Expects an integer return; zero means failure -&gt; expat.ExpatError.</span>
+            <span class="s1">parser.ExternalEntityRefHandler = </span><span class="s3">lambda </span><span class="s1">*x: </span><span class="s5">1</span>
+    <span class="s3">if </span><span class="s1">hasattr(xml_input</span><span class="s3">, </span><span class="s4">'read'</span><span class="s1">):</span>
+        <span class="s1">parser.ParseFile(xml_input)</span>
+    <span class="s3">else</span><span class="s1">:</span>
+        <span class="s1">parser.Parse(xml_input</span><span class="s3">, True</span><span class="s1">)</span>
+    <span class="s3">return </span><span class="s1">handler.item</span>
+
+
+<span class="s3">def </span><span class="s1">_process_namespace(name</span><span class="s3">, </span><span class="s1">namespaces</span><span class="s3">, </span><span class="s1">ns_sep=</span><span class="s4">':'</span><span class="s3">, </span><span class="s1">attr_prefix=</span><span class="s4">'@'</span><span class="s1">):</span>
+    <span class="s3">if not </span><span class="s1">namespaces:</span>
+        <span class="s3">return </span><span class="s1">name</span>
+    <span class="s3">try</span><span class="s1">:</span>
+        <span class="s1">ns</span><span class="s3">, </span><span class="s1">name = name.rsplit(ns_sep</span><span class="s3">, </span><span class="s5">1</span><span class="s1">)</span>
+    <span class="s3">except </span><span class="s1">ValueError:</span>
+        <span class="s3">pass</span>
+    <span class="s3">else</span><span class="s1">:</span>
+        <span class="s1">ns_res = namespaces.get(ns.strip(attr_prefix))</span>
+        <span class="s1">name = </span><span class="s4">'{}{}{}{}'</span><span class="s1">.format(</span>
+            <span class="s1">attr_prefix </span><span class="s3">if </span><span class="s1">ns.startswith(attr_prefix) </span><span class="s3">else </span><span class="s4">''</span><span class="s3">,</span>
+            <span class="s1">ns_res</span><span class="s3">, </span><span class="s1">ns_sep</span><span class="s3">, </span><span class="s1">name) </span><span class="s3">if </span><span class="s1">ns_res </span><span class="s3">else </span><span class="s1">name</span>
+    <span class="s3">return </span><span class="s1">name</span>
+
+
+<span class="s3">def </span><span class="s1">_emit(key</span><span class="s3">, </span><span class="s1">value</span><span class="s3">, </span><span class="s1">content_handler</span><span class="s3">,</span>
+          <span class="s1">attr_prefix=</span><span class="s4">'@'</span><span class="s3">,</span>
+          <span class="s1">cdata_key=</span><span class="s4">'#text'</span><span class="s3">,</span>
+          <span class="s1">depth=</span><span class="s5">0</span><span class="s3">,</span>
+          <span class="s1">preprocessor=</span><span class="s3">None,</span>
+          <span class="s1">pretty=</span><span class="s3">False,</span>
+          <span class="s1">newl=</span><span class="s4">'</span><span class="s3">\n</span><span class="s4">'</span><span class="s3">,</span>
+          <span class="s1">indent=</span><span class="s4">'</span><span class="s3">\t</span><span class="s4">'</span><span class="s3">,</span>
+          <span class="s1">namespace_separator=</span><span class="s4">':'</span><span class="s3">,</span>
+          <span class="s1">namespaces=</span><span class="s3">None,</span>
+          <span class="s1">full_document=</span><span class="s3">True</span><span class="s1">):</span>
+    <span class="s1">key = _process_namespace(key</span><span class="s3">, </span><span class="s1">namespaces</span><span class="s3">, </span><span class="s1">namespace_separator</span><span class="s3">, </span><span class="s1">attr_prefix)</span>
+    <span class="s3">if </span><span class="s1">preprocessor </span><span class="s3">is not None</span><span class="s1">:</span>
+        <span class="s1">result = preprocessor(key</span><span class="s3">, </span><span class="s1">value)</span>
+        <span class="s3">if </span><span class="s1">result </span><span class="s3">is None</span><span class="s1">:</span>
+            <span class="s3">return</span>
+        <span class="s1">key</span><span class="s3">, </span><span class="s1">value = result</span>
+    <span class="s3">if </span><span class="s1">(</span><span class="s3">not </span><span class="s1">hasattr(value</span><span class="s3">, </span><span class="s4">'__iter__'</span><span class="s1">)</span>
+            <span class="s3">or </span><span class="s1">isinstance(value</span><span class="s3">, </span><span class="s1">_basestring)</span>
+            <span class="s3">or </span><span class="s1">isinstance(value</span><span class="s3">, </span><span class="s1">dict)):</span>
+        <span class="s1">value = [value]</span>
+    <span class="s3">for </span><span class="s1">index</span><span class="s3">, </span><span class="s1">v </span><span class="s3">in </span><span class="s1">enumerate(value):</span>
+        <span class="s3">if </span><span class="s1">full_document </span><span class="s3">and </span><span class="s1">depth == </span><span class="s5">0 </span><span class="s3">and </span><span class="s1">index &gt; </span><span class="s5">0</span><span class="s1">:</span>
+            <span class="s3">raise </span><span class="s1">ValueError(</span><span class="s4">'document with multiple roots'</span><span class="s1">)</span>
+        <span class="s3">if </span><span class="s1">v </span><span class="s3">is None</span><span class="s1">:</span>
+            <span class="s1">v = OrderedDict()</span>
+        <span class="s3">elif </span><span class="s1">isinstance(v</span><span class="s3">, </span><span class="s1">bool):</span>
+            <span class="s3">if </span><span class="s1">v:</span>
+                <span class="s1">v = _unicode(</span><span class="s4">'true'</span><span class="s1">)</span>
+            <span class="s3">else</span><span class="s1">:</span>
+                <span class="s1">v = _unicode(</span><span class="s4">'false'</span><span class="s1">)</span>
+        <span class="s3">elif not </span><span class="s1">isinstance(v</span><span class="s3">, </span><span class="s1">dict):</span>
+            <span class="s1">v = _unicode(v)</span>
+        <span class="s3">if </span><span class="s1">isinstance(v</span><span class="s3">, </span><span class="s1">_basestring):</span>
+            <span class="s1">v = OrderedDict(((cdata_key</span><span class="s3">, </span><span class="s1">v)</span><span class="s3">,</span><span class="s1">))</span>
+        <span class="s1">cdata = </span><span class="s3">None</span>
+        <span class="s1">attrs = OrderedDict()</span>
+        <span class="s1">children = []</span>
+        <span class="s3">for </span><span class="s1">ik</span><span class="s3">, </span><span class="s1">iv </span><span class="s3">in </span><span class="s1">v.items():</span>
+            <span class="s3">if </span><span class="s1">ik == cdata_key:</span>
+                <span class="s1">cdata = iv</span>
+                <span class="s3">continue</span>
+            <span class="s3">if </span><span class="s1">ik.startswith(attr_prefix):</span>
+                <span class="s1">ik = _process_namespace(ik</span><span class="s3">, </span><span class="s1">namespaces</span><span class="s3">, </span><span class="s1">namespace_separator</span><span class="s3">,</span>
+                                        <span class="s1">attr_prefix)</span>
+                <span class="s3">if </span><span class="s1">ik == </span><span class="s4">'@xmlns' </span><span class="s3">and </span><span class="s1">isinstance(iv</span><span class="s3">, </span><span class="s1">dict):</span>
+                    <span class="s3">for </span><span class="s1">k</span><span class="s3">, </span><span class="s1">v </span><span class="s3">in </span><span class="s1">iv.items():</span>
+                        <span class="s1">attr = </span><span class="s4">'xmlns{}'</span><span class="s1">.format(</span><span class="s4">':{}'</span><span class="s1">.format(k) </span><span class="s3">if </span><span class="s1">k </span><span class="s3">else </span><span class="s4">''</span><span class="s1">)</span>
+                        <span class="s1">attrs[attr] = _unicode(v)</span>
+                    <span class="s3">continue</span>
+                <span class="s3">if not </span><span class="s1">isinstance(iv</span><span class="s3">, </span><span class="s1">_unicode):</span>
+                    <span class="s1">iv = _unicode(iv)</span>
+                <span class="s1">attrs[ik[len(attr_prefix):]] = iv</span>
+                <span class="s3">continue</span>
+            <span class="s1">children.append((ik</span><span class="s3">, </span><span class="s1">iv))</span>
+        <span class="s3">if </span><span class="s1">pretty:</span>
+            <span class="s1">content_handler.ignorableWhitespace(depth * indent)</span>
+        <span class="s1">content_handler.startElement(key</span><span class="s3">, </span><span class="s1">AttributesImpl(attrs))</span>
+        <span class="s3">if </span><span class="s1">pretty </span><span class="s3">and </span><span class="s1">children:</span>
+            <span class="s1">content_handler.ignorableWhitespace(newl)</span>
+        <span class="s3">for </span><span class="s1">child_key</span><span class="s3">, </span><span class="s1">child_value </span><span class="s3">in </span><span class="s1">children:</span>
+            <span class="s1">_emit(child_key</span><span class="s3">, </span><span class="s1">child_value</span><span class="s3">, </span><span class="s1">content_handler</span><span class="s3">,</span>
+                  <span class="s1">attr_prefix</span><span class="s3">, </span><span class="s1">cdata_key</span><span class="s3">, </span><span class="s1">depth+</span><span class="s5">1</span><span class="s3">, </span><span class="s1">preprocessor</span><span class="s3">,</span>
+                  <span class="s1">pretty</span><span class="s3">, </span><span class="s1">newl</span><span class="s3">, </span><span class="s1">indent</span><span class="s3">, </span><span class="s1">namespaces=namespaces</span><span class="s3">,</span>
+                  <span class="s1">namespace_separator=namespace_separator)</span>
+        <span class="s3">if </span><span class="s1">cdata </span><span class="s3">is not None</span><span class="s1">:</span>
+            <span class="s1">content_handler.characters(cdata)</span>
+        <span class="s3">if </span><span class="s1">pretty </span><span class="s3">and </span><span class="s1">children:</span>
+            <span class="s1">content_handler.ignorableWhitespace(depth * indent)</span>
+        <span class="s1">content_handler.endElement(key)</span>
+        <span class="s3">if </span><span class="s1">pretty </span><span class="s3">and </span><span class="s1">depth:</span>
+            <span class="s1">content_handler.ignorableWhitespace(newl)</span>
+
+
+<span class="s3">def </span><span class="s1">unparse(input_dict</span><span class="s3">, </span><span class="s1">output=</span><span class="s3">None, </span><span class="s1">encoding=</span><span class="s4">'utf-8'</span><span class="s3">, </span><span class="s1">full_document=</span><span class="s3">True,</span>
+            <span class="s1">short_empty_elements=</span><span class="s3">False,</span>
+            <span class="s1">**kwargs):</span>
+    <span class="s2">&quot;&quot;&quot;Emit an XML document for the given `input_dict` (reverse of `parse`). 
+ 
+    The resulting XML document is returned as a string, but if `output` (a 
+    file-like object) is specified, it is written there instead. 
+ 
+    Dictionary keys prefixed with `attr_prefix` (default=`'@'`) are interpreted 
+    as XML node attributes, whereas keys equal to `cdata_key` 
+    (default=`'#text'`) are treated as character data. 
+ 
+    The `pretty` parameter (default=`False`) enables pretty-printing. In this 
+    mode, lines are terminated with `'\n'` and indented with `'\t'`, but this 
+    can be customized with the `newl` and `indent` parameters. 
+ 
+    &quot;&quot;&quot;</span>
+    <span class="s3">if </span><span class="s1">full_document </span><span class="s3">and </span><span class="s1">len(input_dict) != </span><span class="s5">1</span><span class="s1">:</span>
+        <span class="s3">raise </span><span class="s1">ValueError(</span><span class="s4">'Document must have exactly one root.'</span><span class="s1">)</span>
+    <span class="s1">must_return = </span><span class="s3">False</span>
+    <span class="s3">if </span><span class="s1">output </span><span class="s3">is None</span><span class="s1">:</span>
+        <span class="s1">output = StringIO()</span>
+        <span class="s1">must_return = </span><span class="s3">True</span>
+    <span class="s3">if </span><span class="s1">short_empty_elements:</span>
+        <span class="s1">content_handler = XMLGenerator(output</span><span class="s3">, </span><span class="s1">encoding</span><span class="s3">, True</span><span class="s1">)</span>
+    <span class="s3">else</span><span class="s1">:</span>
+        <span class="s1">content_handler = XMLGenerator(output</span><span class="s3">, </span><span class="s1">encoding)</span>
+    <span class="s3">if </span><span class="s1">full_document:</span>
+        <span class="s1">content_handler.startDocument()</span>
+    <span class="s3">for </span><span class="s1">key</span><span class="s3">, </span><span class="s1">value </span><span class="s3">in </span><span class="s1">input_dict.items():</span>
+        <span class="s1">_emit(key</span><span class="s3">, </span><span class="s1">value</span><span class="s3">, </span><span class="s1">content_handler</span><span class="s3">, </span><span class="s1">full_document=full_document</span><span class="s3">,</span>
+              <span class="s1">**kwargs)</span>
+    <span class="s3">if </span><span class="s1">full_document:</span>
+        <span class="s1">content_handler.endDocument()</span>
+    <span class="s3">if </span><span class="s1">must_return:</span>
+        <span class="s1">value = output.getvalue()</span>
+        <span class="s3">try</span><span class="s1">:  </span><span class="s0"># pragma no cover</span>
+            <span class="s1">value = value.decode(encoding)</span>
+        <span class="s3">except </span><span class="s1">AttributeError:  </span><span class="s0"># pragma no cover</span>
+            <span class="s3">pass</span>
+        <span class="s3">return </span><span class="s1">value</span>
+
+
+<span class="s3">if </span><span class="s1">__name__ == </span><span class="s4">'__main__'</span><span class="s1">:  </span><span class="s0"># pragma: no cover</span>
+    <span class="s3">import </span><span class="s1">sys</span>
+    <span class="s3">import </span><span class="s1">marshal</span>
+    <span class="s3">try</span><span class="s1">:</span>
+        <span class="s1">stdin = sys.stdin.buffer</span>
+        <span class="s1">stdout = sys.stdout.buffer</span>
+    <span class="s3">except </span><span class="s1">AttributeError:</span>
+        <span class="s1">stdin = sys.stdin</span>
+        <span class="s1">stdout = sys.stdout</span>
+
+    <span class="s1">(item_depth</span><span class="s3">,</span><span class="s1">) = sys.argv[</span><span class="s5">1</span><span class="s1">:]</span>
+    <span class="s1">item_depth = int(item_depth)</span>
+
+    <span class="s3">def </span><span class="s1">handle_item(path</span><span class="s3">, </span><span class="s1">item):</span>
+        <span class="s1">marshal.dump((path</span><span class="s3">, </span><span class="s1">item)</span><span class="s3">, </span><span class="s1">stdout)</span>
+        <span class="s3">return True</span>
+
+    <span class="s3">try</span><span class="s1">:</span>
+        <span class="s1">root = parse(stdin</span><span class="s3">,</span>
+                     <span class="s1">item_depth=item_depth</span><span class="s3">,</span>
+                     <span class="s1">item_callback=handle_item</span><span class="s3">,</span>
+                     <span class="s1">dict_constructor=dict)</span>
+        <span class="s3">if </span><span class="s1">item_depth == </span><span class="s5">0</span><span class="s1">:</span>
+            <span class="s1">handle_item([]</span><span class="s3">, </span><span class="s1">root)</span>
+    <span class="s3">except </span><span class="s1">KeyboardInterrupt:</span>
+        <span class="s3">pass</span>
+</pre>
+</body>
+</html>
